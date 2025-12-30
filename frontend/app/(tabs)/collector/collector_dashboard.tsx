@@ -1,4 +1,4 @@
-// app/collector/collector_dashboard.tsx
+// frontend/app/collector/collector_dashboard.tsx
 
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";

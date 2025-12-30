@@ -1,3 +1,4 @@
+# utils/qr_utils.py
 import os
 import qrcode
 import json

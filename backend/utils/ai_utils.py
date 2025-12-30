@@ -1,3 +1,4 @@
+# utils/ai_utils.py
 def predict_nutrition(crop_type: str) -> float:
     import random
     crop_scores = {

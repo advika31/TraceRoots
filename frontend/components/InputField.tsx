@@ -1,3 +1,4 @@
+//  frontend/components/InputField.tsx
 import { TextInput, View, Text, StyleSheet } from "react-native";
 
 interface Props {

@@ -1,4 +1,4 @@
-// app/consumer/consumer_dashboard.tsx
+// frontend/app/consumer/consumer_dashboard.tsx
 
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";

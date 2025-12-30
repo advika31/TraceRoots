@@ -1,3 +1,4 @@
+//  frontend/components/Button.tsx
 import { TouchableOpacity, Text, StyleSheet } from "react-native";
 
 interface Props {

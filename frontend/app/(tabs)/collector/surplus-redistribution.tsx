@@ -1,4 +1,4 @@
-// /app/collector/surplus-redistribution.tsx
+// /frontend/app/collector/surplus-redistribution.tsx
 
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
