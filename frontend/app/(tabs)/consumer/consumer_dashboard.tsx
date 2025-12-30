@@ -1,4 +1,5 @@
 // app/consumer/consumer_dashboard.tsx
+
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -24,7 +25,7 @@ export default function ConsumerDashboard() {
       {/* QR Scan Button */}
       <TouchableOpacity
         style={styles.scanButton}
-        onPress={() => router.push("/consumer/product_info")}
+        onPress={() => router.push("/consumer/product_info?batchId=1")}
       >
         <MaterialIcons name="qr-code-scanner" size={28} color="#fff" />
         <Text style={styles.scanButtonText}>Scan QR Code</Text>
@@ -33,6 +34,15 @@ export default function ConsumerDashboard() {
       {/* Feature Cards */}
       <View style={styles.featuresContainer}>
         <Text style={styles.featuresTitle}>Key Features</Text>
+
+        <TouchableOpacity
+  style={styles.featureCard}
+  onPress={() => router.push("/consumer/impact")}
+>
+  <MaterialIcons name="eco" size={24} color="#15803d" />
+  <Text style={styles.featureText}>View Impact Stats</Text>
+</TouchableOpacity>
+
 
         <View style={styles.featureCard}>
           <MaterialIcons name="timeline" size={24} color="#15803d" />

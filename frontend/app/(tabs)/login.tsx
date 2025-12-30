@@ -1,9 +1,12 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import API from "@/services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login() {
   const [email, setEmail] = useState("");
+  const [walletAddress, setWalletAddress] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const router = useRouter();
@@ -12,11 +15,8 @@ export default function Login() {
     email: "processor@example.com",
     password: "123",
   };
-  const collectorCredentials = {
-    email: "Collector@example.com",
-    password: "123",
-  };
-  const handleLogin = () => {
+
+  const handleLogin = async() => {
     if (role === "Processor") {
       // Check email and password for Processor
       if (email === processorCredentials.email && password === processorCredentials.password) {
@@ -26,12 +26,27 @@ export default function Login() {
       }
     }
     else if (role === "Collector") {
-      if (email === collectorCredentials.email && password === collectorCredentials.password) {
-        router.push("/collector/collector_dashboard");
-      } else {
-        Alert.alert("Invalid Collector credentials");
-      }
-    }
+  try {
+    const res = await API.post("/farmers/login", {
+  wallet_address: walletAddress,
+});
+
+// assuming backend returns farmer object
+await AsyncStorage.setItem(
+  "collector",
+  JSON.stringify(res.data)
+);
+
+router.replace("/collector/collector_dashboard");
+
+  } catch (error: any) {
+    Alert.alert(
+      "Login Failed",
+      error?.response?.data?.detail || "Invalid wallet address"
+    );
+  }
+}
+
     else if (role === "Regulator") router.push("/regulator/regulator_dashboard");
     else if (role === "Consumer") router.push("/consumer/consumer_dashboard");
   };
@@ -40,13 +55,13 @@ export default function Login() {
     <View style={styles.container}>
       <Text style={styles.title}>AyurPramaan Login</Text>
 
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your email"
-        value={email}
-        onChangeText={setEmail}
-      />
+      <Text style={styles.label}>Wallet Address</Text>
+<TextInput
+  style={styles.input}
+  placeholder="Enter your wallet address"
+  value={walletAddress}
+  onChangeText={setWalletAddress}
+/>
 
       <Text style={styles.label}>Password</Text>
       <TextInput

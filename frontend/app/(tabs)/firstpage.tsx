@@ -28,7 +28,7 @@ export default function FirstPage() {
 
         {/* Content Wrapper */}
         <View style={styles.contentWrapper}>
-          <Text style={styles.title}>AyurPramaan</Text>
+          <Text style={styles.title}>TraceRoots</Text>
           <Text style={styles.tagline}>Authenticity. Sustainability. Traceability.</Text>
 
           <TouchableOpacity
