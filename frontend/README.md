@@ -1,50 +1,54 @@
-# Welcome to your Expo app 👋
+TraceRoots 
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+### AI + Blockchain for Authentic, Sustainable Agricultural Supply Chains
 
-## Get started
+TraceRoots is an AI-powered blockchain platform that ensures **authenticity, traceability, sustainability, and surplus accountability** across agricultural supply chains.
 
-1. Install dependencies
+## 🚨 Problem Statement
 
-   ```bash
-   npm install
-   ```
+- 30%+ adulteration in herbal & agri supply chains (WHO)
+- 80% sourcing through unorganized channels (NMPB)
+- Unsustainable harvesting threatening biodiversity
+- Manual, slow, and manipulable certification
+- Massive food wastage despite surplus availability
+- Low global consumer trust
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 💡 Solution
 
-In the output, you'll find options to open the app in a
+TraceRoots combines:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- 🤖 AI-based authenticity & quality verification  
+- 🔗 Blockchain-backed immutable traceability  
+- 📦 Batch-level lifecycle tracking  
+- ♻️ Surplus donation verification  
+- 📖 QR-based consumer storytelling  
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## 👥 Stakeholders
 
-When you're ready, run:
+- Farmers
+- Processors
+- NGOs
+- Consumers
+- Regulators / Admins
 
-```bash
-npm run reset-project
-```
+---
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📈 Impact Vision
 
-## Learn more
+- Farmer income uplift: **+20–30%**
+- Adulteration reduced to **<5%**
+- Traceability coverage **90%+**
+- Food waste reduction through surplus donation
+- Global trust for Ayurveda & fresh produce
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 📚 Documentation
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [System Architecture](README_ARCHITECTURE.md)
+- [Technical Flows](README_TECHNICALFLOW.md)
+- [Round 2 Enhancements](README_ROUND_2.md)
