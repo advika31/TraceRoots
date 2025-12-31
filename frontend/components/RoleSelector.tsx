@@ -1,3 +1,4 @@
+//  frontend/components/RoleSelector.tsx
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useState } from "react";
 

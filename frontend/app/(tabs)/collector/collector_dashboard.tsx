@@ -1,13 +1,45 @@
-// app/collector/collector_dashboard.tsx
+// frontend/app/collector/collector_dashboard.tsx
+
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Navbar from "../components/Navbar"; // ✅ reusable navbar
+import { useEffect, useState } from "react";
+import API from "@/services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CollectorDashboard() {
   const router = useRouter();
-  const collectorName = "Ramesh"; // 🔹 replace with dynamic user name later
+  const [collectorName, setCollectorName] = useState("");
+  const [batchCount, setBatchCount] = useState(0);
+  const [tokens, setTokens] = useState(0);
+  
+  useEffect(() => {
+     const loadCollector = async () => {
+    const data = await AsyncStorage.getItem("collector");
+    if (data) {
+      const farmer = JSON.parse(data);
+      setCollectorName(farmer.name);
+    }
+  };
+
+  loadCollector();
+  const fetchDashboardData = async () => {
+    try {
+      const batchesRes = await API.get("/batches/all");
+      setBatchCount(batchesRes.data.length);
+
+      // TEMP: using collector ID = 1
+      const tokensRes = await API.get("/farmers/tokens/1");
+      setTokens(tokensRes.data.tokens);
+    } catch (error) {
+      console.log("Dashboard fetch error", error);
+    }
+  };
+
+  fetchDashboardData();
+}, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -22,8 +54,10 @@ export default function CollectorDashboard() {
         <Text style={styles.statusTitle}>
           📡 Sync Status: <Text style={{ color: "#c1f0f0ff" }}>Online</Text>
         </Text>
-        <Text style={styles.statusText}>🌍 GPS: 28.61°N, 77.23°E</Text>
+        <Text style={styles.statusText}>📦 Total Batches: {batchCount}</Text>
+        <Text style={styles.statusText}>🪙 Tokens Earned: {tokens}</Text>
         <Text style={styles.statusText}>🟢 Zone: Sustainable (Green)</Text>
+
       </View>
 
       {/* Features Grid */}
@@ -39,7 +73,7 @@ export default function CollectorDashboard() {
 
         <TouchableOpacity
           style={styles.card}
-          onPress={() => router.push("/collector/herb-fingerprint")}
+          // onPress={() => router.push("/collector/herb-fingerprint")}
         >
           <MaterialIcons name="camera-alt" size={30} color="#15803d" />
           <Text style={styles.cardText}>Herb Fingerprint</Text>
@@ -52,6 +86,15 @@ export default function CollectorDashboard() {
           <MaterialIcons name="qr-code-2" size={30} color="#15803d" />
           <Text style={styles.cardText}>Batch & QR</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+  style={styles.card}
+  onPress={() => router.push("/collector/surplus-redistribution")}
+>
+  <MaterialIcons name="volunteer-activism" size={30} color="#15803d" />
+  <Text style={styles.cardText}>Donate Surplus</Text>
+</TouchableOpacity>
+
 
         <TouchableOpacity
           style={styles.card}
@@ -70,12 +113,12 @@ export default function CollectorDashboard() {
         <TouchableOpacity onPress={() => router.push("/collector/history")}>
           <MaterialIcons name="history" size={32} color="#15803d" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/collector/offline-sync")}>
+        {/* <TouchableOpacity onPress={() => router.push("/collector/offline-sync")}> */}
           <MaterialIcons name="cloud-upload" size={32} color="#15803d" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/collector/profile")}>
+        {/* </TouchableOpacity> */}
+        {/* <TouchableOpacity onPress={() => router.push("/collector/profile")}> */}
           <MaterialIcons name="person" size={32} color="#15803d" />
-        </TouchableOpacity>
+        {/* </TouchableOpacity> */}
       </View>
     </ScrollView>
   );

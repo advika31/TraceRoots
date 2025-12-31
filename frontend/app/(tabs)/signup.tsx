@@ -1,18 +1,53 @@
+// /frontend/app/(tabs)/signup.tsx
+
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
+import API from "@/services/api";
 
 export default function Signup() {
+  const [walletAddress, setWalletAddress] = useState("");
+  const [location, setLocation] = useState("");
+  const [farmSize, setFarmSize] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const router = useRouter();
 
-  const handleSignup = () => {
-    // Later connect to backend
+ const handleSignup = async () => {
+    Alert.alert("Signup button clicked"); 
+  if (role !== "Collector") {
+    Alert.alert("Only Collector signup is enabled right now");
+    return;
+  }
+
+  try {
+    await API.post("/farmers/register", {
+  name,
+  location,
+  farm_size: Number(farmSize),
+  wallet_address: walletAddress,
+});
+
+   Alert.alert(
+  "Registration Successful",
+  `Your wallet address is:\n\n${walletAddress}\n\nPlease use this to login.`
+);
+
+
     router.replace("/login");
-  };
+  } catch (error: any) {
+  console.log("Signup error FULL:", error);
+  console.log("Signup error RESPONSE:", error?.response);
+  console.log("Signup error DATA:", error?.response?.data);
+
+  Alert.alert(
+    "Signup Failed",
+    JSON.stringify(error?.response?.data || error.message)
+  );
+}
+};
 
   return (
     <View style={styles.container}>
@@ -25,6 +60,32 @@ export default function Signup() {
         value={name}
         onChangeText={setName}
       />
+
+      <Text style={styles.label}>Wallet Address</Text>
+<TextInput
+  style={styles.input}
+  placeholder="Enter wallet address"
+  value={walletAddress}
+  onChangeText={setWalletAddress}
+/>
+
+<Text style={styles.label}>Location</Text>
+<TextInput
+  style={styles.input}
+  placeholder="Enter farm location"
+  value={location}
+  onChangeText={setLocation}
+/>
+
+<Text style={styles.label}>Farm Size (in acres)</Text>
+<TextInput
+  style={styles.input}
+  placeholder="Enter farm size"
+  keyboardType="numeric"
+  value={farmSize}
+  onChangeText={setFarmSize}
+/>
+
 
       <Text style={styles.label}>Email</Text>
       <TextInput

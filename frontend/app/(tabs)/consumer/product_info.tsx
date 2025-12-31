@@ -1,9 +1,16 @@
 // app/consumer/product_info.tsx
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import type { ComponentProps } from "react";
-import React from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import API from "@/services/api";
 
 type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
@@ -17,60 +24,106 @@ interface JourneyStep {
 
 export default function ProductInfoScreen() {
   const router = useRouter();
+  const { batchId } = useLocalSearchParams<{ batchId: string }>();
+  const [journeySteps, setJourneySteps] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [onChain, setOnChain] = useState<boolean | null>(null);
+  const [cropType, setCropType] = useState<string | null>(null);
 
-  const journeySteps: JourneyStep[] = [
-    {
-      icon: "sprout",
-      title: "Harvested",
-      desc: "Handpicked by local farmers",
-      date: "12 Jan 2025",
-      location: "Badrinath Valley, India",
-    },
-    {
-      icon: "factory",
-      title: "Processed",
-      desc: "Eco-friendly extraction & testing",
-      date: "15 Jan 2025",
-      location: "EcoLab, Dehradun",
-    },
-    {
-      icon: "truck",
-      title: "Transported",
-      desc: "Cold chain logistics maintained",
-      date: "18 Jan 2025",
-      location: "Rishikesh Logistics Hub",
-    },
-    {
-      icon: "package-variant-closed",
-      title: "Packaged",
-      desc: "Sealed in certified facility",
-      date: "20 Jan 2025",
-      location: "Ayurveda Packaging Unit, Haridwar",
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const traceRes = await API.get(`/consumer/trace/${batchId}`);
+        // setJourneySteps(traceRes.data.journey);
+        setJourneySteps([
+  {
+    icon: "sprout",
+    title: "Harvested",
+    desc: `Harvested by ${traceRes.data.farmer_name}`,
+    date: "10 Jan 2025",
+    location: "Uttarakhand, India",
+  },
+  {
+    icon: "truck",
+    title: "Transported",
+    desc: "Cold-chain transport maintained",
+    date: "12 Jan 2025",
+    location: "Dehradun",
+  },
+  {
+    icon: "package-variant",
+    title: "Packaged",
+    desc: "Packaged under safety norms",
+    date: "14 Jan 2025",
+    location: "Haridwar",
+  },
+]);
+
+        setCropType(traceRes.data.crop_type);
+
+        const bcRes = await API.get(
+          `/blockchain/batch/${batchId}?crop_type=${traceRes.data.crop_type}`
+        );
+        setOnChain(bcRes.data.on_chain);
+      } catch (e) {
+        console.log("Trace / Blockchain fetch failed", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (batchId) fetchData();
+  }, [batchId]);
+
+  if (!batchId) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Invalid or missing batch ID</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
       <Text style={styles.title}>🌿 Product Information</Text>
 
-      {/* Journey Timeline */}
-      <View style={styles.card}>
-        <Text style={styles.label}>Journey</Text>
-        {journeySteps.map((step, index) => (
-          <View key={index} style={styles.timelineItem}>
-            <View style={styles.iconColumn}>
-              <MaterialCommunityIcons name={step.icon} size={28} color="#15803d" />
-              {index < journeySteps.length - 1 && <View style={styles.verticalLine} />}
-            </View>
-            <View style={styles.details}>
-              <Text style={styles.stepTitle}>{step.title}</Text>
-              <Text style={styles.stepDesc}>{step.desc}</Text>
-              <Text style={styles.stepMeta}>📅 {step.date}</Text>
-              <Text style={styles.stepMeta}>📍 {step.location}</Text>
-            </View>
+      {loading ? (
+        <Text style={{ textAlign: "center", marginTop: 20 }}>
+          Loading product journey...
+        </Text>
+      ) : (
+        <>
+          {/* Journey Timeline */}
+          <View style={styles.card}>
+            <Text style={styles.label}>Journey</Text>
+
+            {journeySteps.map((step, index) => (
+              <View key={index} style={styles.timelineItem}>
+                <View style={styles.iconColumn}>
+                  <MaterialCommunityIcons
+                    name={step.icon}
+                    size={28}
+                    color="#15803d"
+                  />
+                  {index < journeySteps.length - 1 && (
+                    <View style={styles.verticalLine} />
+                  )}
+                </View>
+
+                <View style={styles.details}>
+                  <Text style={styles.stepTitle}>{step.title}</Text>
+                  <Text style={styles.stepDesc}>{step.desc}</Text>
+                  <Text style={styles.stepMeta}>📅 {step.date}</Text>
+                  <Text style={styles.stepMeta}>📍 {step.location}</Text>
+                </View>
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
+        </>
+      )}
 
       {/* Origin */}
       <View style={styles.card}>
@@ -82,14 +135,25 @@ export default function ProductInfoScreen() {
       <View style={styles.card}>
         <Text style={styles.label}>Lab Results</Text>
         <Text style={styles.value}>
-          ✅ 98% Purity{"\n"}✅ Heavy Metals: Safe{"\n"}✅ Pesticides: None Detected
+          ✅ 98% Purity{"\n"}✅ Heavy Metals: Safe{"\n"}✅ Pesticides: None
+          Detected
         </Text>
       </View>
 
       {/* Authenticity Badge */}
+
       <View style={[styles.card, styles.badge]}>
-        <Text style={styles.label}>Authenticity Badge</Text>
-        <Text style={styles.value}>🔒 Verified on Blockchain</Text>
+        <Text style={styles.label}>Blockchain Proof</Text>
+
+        {onChain === true && (
+          <Text style={styles.value}>✅ Verified on Blockchain</Text>
+        )}
+
+        {onChain === false && <Text style={styles.value}>❌ Not Verified</Text>}
+
+        {onChain === null && (
+          <Text style={styles.value}>⏳ Checking verification...</Text>
+        )}
       </View>
 
       {/* Feedback Form Button */}

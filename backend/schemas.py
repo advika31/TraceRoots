@@ -1,3 +1,4 @@
+# backend/schemas.py
 from pydantic import BaseModel
 from typing import Optional
 
@@ -76,5 +77,5 @@ class AnalyticsSummary(BaseModel):
     total_distributed: int
     total_tokens: int
 
-
-
+class FarmerLogin(BaseModel):
+    wallet_address: str

@@ -1,52 +1,77 @@
+// frontend/app/%28tabs%29/login.tsx
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import API from "@/services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login() {
   const [email, setEmail] = useState("");
+  const [walletAddress, setWalletAddress] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const router = useRouter();
 
-  const processorCredentials = {
-    email: "processor@example.com",
-    password: "123",
-  };
-  const collectorCredentials = {
-    email: "Collector@example.com",
-    password: "123",
-  };
-  const handleLogin = () => {
-    if (role === "Processor") {
-      // Check email and password for Processor
-      if (email === processorCredentials.email && password === processorCredentials.password) {
-        router.push("/processor/processor_dashboard");
-      } else {
-        Alert.alert("Invalid Processor credentials");
-      }
+  // const processorCredentials = {
+  //   email: "processor@example.com",
+  //   password: "123",
+  // };
+
+  const handleLogin = async () => {
+  // PROCESSOR (hardcoded demo login)
+  if (role === "Processor") {
+    if (walletAddress === "processor" && password === "123") {
+      router.replace("/processor/processor_dashboard");
+      return;
     }
-    else if (role === "Collector") {
-      if (email === collectorCredentials.email && password === collectorCredentials.password) {
-        router.push("/collector/collector_dashboard");
-      } else {
-        Alert.alert("Invalid Collector credentials");
-      }
+    Alert.alert("Invalid Processor credentials");
+    return;
+  }
+
+  // COLLECTOR (wallet-based login)
+  if (role === "Collector") {
+    try {
+      const res = await API.post("/farmers/login", {
+        wallet_address: walletAddress,
+      });
+
+      await AsyncStorage.setItem("collector", JSON.stringify(res.data));
+      router.replace("/collector/collector_dashboard");
+      return;
+    } catch (error: any) {
+      Alert.alert(
+        "Login Failed",
+        error?.response?.data?.detail || "Invalid wallet address"
+      );
+      return;
     }
-    else if (role === "Regulator") router.push("/regulator/regulator_dashboard");
-    else if (role === "Consumer") router.push("/consumer/consumer_dashboard");
-  };
+  }
+
+  // CONSUMER & REGULATOR (UI only)
+  if (role === "Consumer") {
+    router.replace("/consumer/consumer_dashboard");
+    return;
+  }
+
+  if (role === "Regulator") {
+    router.replace("/regulator/regulator_dashboard");
+    return;
+  }
+
+  Alert.alert("Please select a role");
+};
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>AyurPramaan Login</Text>
+      <Text style={styles.title}>TraceRoots Login</Text>
 
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your email"
-        value={email}
-        onChangeText={setEmail}
-      />
+      <Text style={styles.label}>Wallet Address</Text>
+<TextInput
+  style={styles.input}
+  placeholder="Enter your wallet address"
+  value={walletAddress}
+  onChangeText={setWalletAddress}
+/>
 
       <Text style={styles.label}>Password</Text>
       <TextInput
