@@ -1,45 +1,49 @@
 // /frontend/app/(tabs)/collector/new-collection.tsx
 
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useRouter } from "expo-router";
 import API from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function NewCollection() {
-  
   const router = useRouter();
 
   const [herbName, setHerbName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [location, setLocation] = useState("");
 
-const handleCreateBatch = async () => {
-  if (!herbName || !quantity || !location) {
-    Alert.alert("All fields are required");
-    return;
-  }
+  const handleCreateBatch = async () => {
+    if (!herbName || !quantity || !location) {
+      Alert.alert("All fields are required");
+      return;
+    }
 
-  try {
-    const data = await AsyncStorage.getItem("collector");
-    const farmer = JSON.parse(data!);
+    try {
+      const data = await AsyncStorage.getItem("collector");
+      const farmer = JSON.parse(data!);
 
-    await API.post("/batches/add", {
-      herbName,
-      quantity: Number(quantity),
-      location,
-      farmerId: farmer.id,
-    });
+      await API.post("/batches/add", {
+        farmer_id: farmer.id,
+        crop_type: herbName,
+        quantity_kg: Number(quantity),
+      });
 
-    Alert.alert("Success", "Batch created successfully");
-    router.back();
-  } catch (error: any) {
-    Alert.alert(
-      "Failed",
-      error?.response?.data?.message || "Could not create batch"
-    );
-  }
-};
-  
+      Alert.alert("Success", "Batch created successfully");
+      router.back();
+    } catch (error: any) {
+      Alert.alert(
+        "Failed",
+        error?.response?.data?.message || "Could not create batch"
+      );
+    }
+  };
 
   return (
     <View style={styles.container}>

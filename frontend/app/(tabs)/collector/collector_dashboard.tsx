@@ -73,7 +73,7 @@ export default function CollectorDashboard() {
 
         <TouchableOpacity
           style={styles.card}
-          onPress={() => router.push("/collector/herb-fingerprint")}
+          // onPress={() => router.push("/collector/herb-fingerprint")}
         >
           <MaterialIcons name="camera-alt" size={30} color="#15803d" />
           <Text style={styles.cardText}>Herb Fingerprint</Text>
@@ -113,12 +113,12 @@ export default function CollectorDashboard() {
         <TouchableOpacity onPress={() => router.push("/collector/history")}>
           <MaterialIcons name="history" size={32} color="#15803d" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/collector/offline-sync")}>
+        {/* <TouchableOpacity onPress={() => router.push("/collector/offline-sync")}> */}
           <MaterialIcons name="cloud-upload" size={32} color="#15803d" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/collector/profile")}>
+        {/* </TouchableOpacity> */}
+        {/* <TouchableOpacity onPress={() => router.push("/collector/profile")}> */}
           <MaterialIcons name="person" size={32} color="#15803d" />
-        </TouchableOpacity>
+        {/* </TouchableOpacity> */}
       </View>
     </ScrollView>
   );

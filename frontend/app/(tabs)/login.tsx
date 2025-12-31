@@ -12,49 +12,58 @@ export default function Login() {
   const [role, setRole] = useState("");
   const router = useRouter();
 
-  const processorCredentials = {
-    email: "processor@example.com",
-    password: "123",
-  };
+  // const processorCredentials = {
+  //   email: "processor@example.com",
+  //   password: "123",
+  // };
 
-  const handleLogin = async() => {
-    if (role === "Processor") {
-      // Check email and password for Processor
-      if (email === processorCredentials.email && password === processorCredentials.password) {
-        router.push("/processor/processor_dashboard");
-      } else {
-        Alert.alert("Invalid Processor credentials");
-      }
+  const handleLogin = async () => {
+  // PROCESSOR (hardcoded demo login)
+  if (role === "Processor") {
+    if (walletAddress === "processor" && password === "123") {
+      router.replace("/processor/processor_dashboard");
+      return;
     }
-    else if (role === "Collector") {
-  try {
-    const res = await API.post("/farmers/login", {
-  wallet_address: walletAddress,
-});
-
-// assuming backend returns farmer object
-await AsyncStorage.setItem(
-  "collector",
-  JSON.stringify(res.data)
-);
-
-router.replace("/collector/collector_dashboard");
-
-  } catch (error: any) {
-    Alert.alert(
-      "Login Failed",
-      error?.response?.data?.detail || "Invalid wallet address"
-    );
+    Alert.alert("Invalid Processor credentials");
+    return;
   }
-}
 
-    else if (role === "Regulator") router.push("/regulator/regulator_dashboard");
-    else if (role === "Consumer") router.push("/consumer/consumer_dashboard");
-  };
+  // COLLECTOR (wallet-based login)
+  if (role === "Collector") {
+    try {
+      const res = await API.post("/farmers/login", {
+        wallet_address: walletAddress,
+      });
+
+      await AsyncStorage.setItem("collector", JSON.stringify(res.data));
+      router.replace("/collector/collector_dashboard");
+      return;
+    } catch (error: any) {
+      Alert.alert(
+        "Login Failed",
+        error?.response?.data?.detail || "Invalid wallet address"
+      );
+      return;
+    }
+  }
+
+  // CONSUMER & REGULATOR (UI only)
+  if (role === "Consumer") {
+    router.replace("/consumer/consumer_dashboard");
+    return;
+  }
+
+  if (role === "Regulator") {
+    router.replace("/regulator/regulator_dashboard");
+    return;
+  }
+
+  Alert.alert("Please select a role");
+};
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>AyurPramaan Login</Text>
+      <Text style={styles.title}>TraceRoots Login</Text>
 
       <Text style={styles.label}>Wallet Address</Text>
 <TextInput

@@ -3,10 +3,18 @@ import { useRouter } from "expo-router";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Navbar from "../components/Navbar";
 
+type ProcessorAction = {
+  title: string;
+  icon: string;
+  route?: string; 
+  special?: boolean;
+};
+
+
 export default function ProcessorDashboard() {
   const router = useRouter();
 
-  const actions = [
+  const actions: ProcessorAction[] = [
     { title: "Scan Batch", icon: "qr-code-scanner", route: "/processor/scan-batch" },
     { title: "Upload Lab Test", icon: "file-upload", route: "/processor/upload-lab-test" },
     { title: "Update Batch Status", icon: "update", route: "/processor/update-batch-status" },
@@ -14,7 +22,7 @@ export default function ProcessorDashboard() {
     { 
       title: "Request Sync to Blockchain", 
       icon: "cloud-upload", 
-      route: "/processor/request-sync", 
+      // route: "/processor/request-sync", 
       special: true // mark special for gradient styling
     },
   ];
@@ -30,7 +38,12 @@ export default function ProcessorDashboard() {
           <TouchableOpacity
             key={index}
             style={[styles.card, action.special && styles.specialCard]}
-            onPress={() => router.push(action.route)}
+            onPress={() => {
+  if (action.route) {
+    router.push(action.route);
+  }
+}}
+
           >
             <View style={styles.cardContent}>
               <MaterialIcons name={action.icon as any} size={32} color={action.special ? "#fff" : "#16a34a"} />

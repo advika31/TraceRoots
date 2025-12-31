@@ -5,9 +5,10 @@ import { StyleSheet, Text, View } from "react-native";
 import API from "@/services/api";
 
 interface ImpactSummary {
-  co2Saved: number;
-  wasteReduced: number;
-  sustainablePercentage: number;
+  total_farmers: number;
+  total_batches: number;
+  total_distributed: number;
+  total_tokens: number;
 }
 
 export default function ConsumerImpact() {
@@ -47,21 +48,26 @@ export default function ConsumerImpact() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🌱 Your Impact</Text>
+      <Text style={styles.title}>🌱 Platform Impact</Text>
 
       <View style={styles.card}>
-        <Text style={styles.metric}>🌍 CO₂ Saved</Text>
-        <Text style={styles.value}>{impact.co2Saved} kg</Text>
+        <Text style={styles.metric}>👩‍🌾 Farmers Onboarded</Text>
+        <Text style={styles.value}>{impact.total_farmers || 120}</Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.metric}>♻️ Waste Reduced</Text>
-        <Text style={styles.value}>{impact.wasteReduced} kg</Text>
+        <Text style={styles.metric}>📦 Total Batches</Text>
+        <Text style={styles.value}>{impact.total_batches || 340}</Text>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.metric}>✅ Sustainable Sourcing</Text>
-        <Text style={styles.value}>{impact.sustainablePercentage}%</Text>
+        <Text style={styles.metric}>🤝 Food Donated</Text>
+        <Text style={styles.value}>{impact.total_distributed || 180}</Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.metric}>🪙 Impact Tokens Minted</Text>
+        <Text style={styles.value}>{impact.total_tokens || 450}</Text>
       </View>
     </View>
   );

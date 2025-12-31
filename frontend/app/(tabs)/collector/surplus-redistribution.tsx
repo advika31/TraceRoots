@@ -1,7 +1,14 @@
-// /frontend/app/collector/surplus-redistribution.tsx
+// frontend/app/(tabs)/collector/surplus-redistribution.tsx
 
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useRouter } from "expo-router";
 import API from "@/services/api";
 
@@ -21,8 +28,7 @@ export default function SurplusRedistribution() {
     try {
       await API.post("/surplus/redistribute", {
         batchId: Number(batchId),
-        quantity: Number(quantity),
-        ngoId: Number(ngoId),
+        ngo_name: ngoId,
       });
 
       Alert.alert("Success", "Surplus redistributed to NGO");
@@ -49,18 +55,16 @@ export default function SurplusRedistribution() {
 
       <TextInput
         style={styles.input}
-        placeholder="Surplus Quantity (kg)"
-        keyboardType="numeric"
-        value={quantity}
-        onChangeText={setQuantity}
+        placeholder="NGO Name"
+        value={ngoId}
+        onChangeText={setNgoId}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="NGO ID"
-        keyboardType="numeric"
-        value={ngoId}
-        onChangeText={setNgoId}
+        placeholder="Quantity"
+        value={quantity}
+        onChangeText={setQuantity}
       />
 
       <TouchableOpacity style={styles.button} onPress={handleDonate}>

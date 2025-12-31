@@ -9,7 +9,7 @@ export default function Navbar() {
         source={require("../../../assets/logo_2.png")} // 🔹 Put your logo inside assets folder
         style={styles.logo}
       />
-      <Text style={styles.title}>AyurPramaan</Text>
+      <Text style={styles.title}>TraceRoots</Text>
     </View>
   );
 }
