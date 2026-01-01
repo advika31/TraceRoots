@@ -47,6 +47,12 @@ TraceRoots combines:
 
 ---
 
+---
+## Explanations
+- [Frontend Explanation](vidoes/Frontend_explanation.mp4)
+- [Backend Explanation](vidoes/Backend_explanation.mp4)
+- [AI Storytelling](vidoes/AI_Storytelling.mp4)
+
 ## 📚 Documentation
 
 - [System Architecture](README_ARCHITECTURE.md)
