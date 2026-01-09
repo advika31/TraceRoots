@@ -73,7 +73,7 @@ export default function CollectorDashboard() {
 
         <TouchableOpacity
           style={styles.card}
-          // onPress={() => router.push("/collector/herb-fingerprint")}
+          onPress={() => router.push("/collector/herb-fingerprint")}
         >
           <MaterialIcons name="camera-alt" size={30} color="#15803d" />
           <Text style={styles.cardText}>Herb Fingerprint</Text>
@@ -105,21 +105,6 @@ export default function CollectorDashboard() {
         </TouchableOpacity>
       </View>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => router.push("/collector/collector_dashboard")}>
-          <MaterialIcons name="home" size={32} color="#15803d" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/collector/history")}>
-          <MaterialIcons name="history" size={32} color="#15803d" />
-        </TouchableOpacity>
-        {/* <TouchableOpacity onPress={() => router.push("/collector/offline-sync")}> */}
-          <MaterialIcons name="cloud-upload" size={32} color="#15803d" />
-        {/* </TouchableOpacity> */}
-        {/* <TouchableOpacity onPress={() => router.push("/collector/profile")}> */}
-          <MaterialIcons name="person" size={32} color="#15803d" />
-        {/* </TouchableOpacity> */}
-      </View>
     </ScrollView>
   );
 }
@@ -129,6 +114,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: "#f0fdf4", // themed light green
     padding: 20,
+    paddingBottom: 100,
+    marginTop: 20,
   },
   welcomeText: {
     fontSize: 30,
@@ -186,17 +173,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 10,
     color: "#374151",
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 20,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    marginTop: 100,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
   },
 });

@@ -25,9 +25,12 @@ export default function Signup() {
   try {
     await API.post("/farmers/register", {
   name,
+  email,
+  password,
   location,
   farm_size: Number(farmSize),
   wallet_address: walletAddress,
+  role: "Collector",
 });
 
    Alert.alert(
