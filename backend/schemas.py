@@ -2,7 +2,6 @@
 from pydantic import BaseModel
 from typing import Optional
 
-
 class FarmerCreate(BaseModel):
     name: str
     location: str
@@ -79,3 +78,42 @@ class AnalyticsSummary(BaseModel):
 
 class FarmerLogin(BaseModel):
     wallet_address: str
+
+class ProcessorCreate(BaseModel):
+    name: str
+    organization: str | None = None
+    location: str | None = None
+
+
+class ProcessorOut(BaseModel):
+    id: int
+    name: str
+    organization: str | None
+    location: str | None
+
+    class Config:
+        from_attributes = True
+
+class LabTestCreate(BaseModel):
+    batch_id: int
+    purity_percent: float
+    heavy_metals_safe: str
+    pesticides_safe: str
+    remarks: str | None = None
+
+
+class LabTestOut(BaseModel):
+    id: int
+    batch_id: int
+    purity_percent: float
+    heavy_metals_safe: str
+    pesticides_safe: str
+    remarks: str | None
+    tested_at: str
+
+    class Config:
+        from_attributes = True
+
+class BatchStatusUpdate(BaseModel):
+    batch_id: int
+    new_status: str  # processed | approved

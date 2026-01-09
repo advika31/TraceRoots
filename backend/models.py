@@ -45,5 +45,25 @@ class Surplus(Base):
 
     batch = relationship("FoodBatch", back_populates="surplus")
 
+class Processor(Base):
+    __tablename__ = "processors"
 
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    organization = Column(String, nullable=True)
+    location = Column(String, nullable=True)
 
+class LabTest(Base):
+    __tablename__ = "lab_tests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    batch_id = Column(Integer, ForeignKey("food_batches.id"), unique=True, nullable=False)
+
+    purity_percent = Column(Float, nullable=False)
+    heavy_metals_safe = Column(String, nullable=False)  # yes / no
+    pesticides_safe = Column(String, nullable=False)    # yes / no
+    remarks = Column(String, nullable=True)
+
+    tested_at = Column(DateTime, default=datetime.utcnow)
+
+    batch = relationship("FoodBatch")
