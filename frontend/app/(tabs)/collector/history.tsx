@@ -89,9 +89,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f0fdf4",
     padding: 20,
+    paddingBottom: 100,
+    marginTop: 40,
   },
   title: {
-    fontSize: 26,
+    fontSize: 30,
     fontWeight: "bold",
     color: "#15803d",
     textAlign: "center",
@@ -108,7 +110,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   herb: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#166534",
     marginBottom: 6,
