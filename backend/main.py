@@ -17,6 +17,7 @@ from routes.surplus import router as surplus_router
 from routes.consumer import router as consumer_router
 from routes.blockchain import router as blockchain_router
 from routes.processor import router as processor_router
+from routes.regulator import router as regulator_router
 
 # Ensure DB tables exist
 Base.metadata.create_all(bind=engine)
@@ -53,6 +54,7 @@ app.include_router(surplus_router)
 app.include_router(consumer_router)
 app.include_router(blockchain_router)
 app.include_router(processor_router)
+app.include_router(regulator_router)
 
 @app.get("/", response_class=HTMLResponse)
 def homepage(db: Session = Depends(get_db)):
@@ -94,8 +96,8 @@ def homepage(db: Session = Depends(get_db)):
 def seed(db: Session = Depends(get_db)):
     # Create two farmers if none
     if db.query(Farmer).count() == 0:
-        f1 = Farmer(name="Alice", location="Valley Farm", farm_size=25.5, wallet_address="0xALICE", tokens=0)
-        f2 = Farmer(name="Bob", location="Hilltop Ranch", farm_size=40.0, wallet_address="0xBOB", tokens=0)
+        f1 = Farmer(name="Alice", location="Valley Farm", farm_size=25.5, wallet_address="0xa4C4b7B9216f240D6Cf1977F058cE716449548a8", tokens=0)
+        f2 = Farmer(name="Bob", location="Hilltop Ranch", farm_size=40.0, wallet_address="0x7f94AeD954c2b2c1fF4683C042274fbc021E5AF3", tokens=0)
         db.add_all([f1, f2])
         db.commit()
         db.refresh(f1)
