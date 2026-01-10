@@ -44,11 +44,11 @@ export default function RegulatorAlerts() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>🚨 Sustainability Alerts</Text>
+      <Text style={styles.title}> Sustainability Alerts</Text>
 
       {alerts.length === 0 ? (
         <Text style={styles.empty}>
-          No violations detected 🎉
+          No violations detected 
         </Text>
       ) : (
         alerts.map((alert) => (
