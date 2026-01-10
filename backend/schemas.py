@@ -117,3 +117,12 @@ class LabTestOut(BaseModel):
 class BatchStatusUpdate(BaseModel):
     batch_id: int
     new_status: str  # processed | approved
+
+class RegulatorOut(BaseModel):
+    id: int
+    name: str
+    department: str | None
+    region: str | None
+
+    class Config:
+        from_attributes = True

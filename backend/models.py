@@ -67,3 +67,11 @@ class LabTest(Base):
     tested_at = Column(DateTime, default=datetime.utcnow)
 
     batch = relationship("FoodBatch")
+    
+class Regulator(Base):
+    __tablename__ = "regulators"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    department = Column(String, nullable=True)
+    region = Column(String, nullable=True)
