@@ -1,4 +1,4 @@
-// /frontend/app/(tabs)/collector/_layout.tsx
+// /frontend/app/collector/_layout.tsx
 
 import { Stack } from "expo-router";
 import { View, StyleSheet } from "react-native";

@@ -1,4 +1,4 @@
-// /frontend/app/(tabs)/collector/components/CollectorBottomNav.tsx
+// /frontend/app/collector/components/CollectorBottomNav.tsx
 
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
