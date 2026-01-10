@@ -12,7 +12,7 @@ export default function FirstPage() {
     <View style={styles.container}>
       {/* Top Image covering 60% of screen */}
       <Image
-        source={require("../../assets/farmer.jpg")}
+        source={require("../assets/farmer.jpg")}
         style={styles.image}
         resizeMode="cover"
       />
@@ -21,7 +21,7 @@ export default function FirstPage() {
       <View style={styles.bottomSection}>
         {/* Small Logo */}
         <Image
-          source={require("../../assets/logo.jpg")}
+          source={require("../assets/logo.jpg")}
           style={styles.logo}
           resizeMode="cover"
         />
