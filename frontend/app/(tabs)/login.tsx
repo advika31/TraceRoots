@@ -20,7 +20,7 @@ export default function Login() {
   const handleLogin = async () => {
   // PROCESSOR (hardcoded demo login)
   if (role === "Processor") {
-    if (walletAddress === "processor" && password === "123") {
+    if (walletAddress === "p" && password === "123") {
       router.replace("/processor/processor_dashboard");
       return;
     }
