@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import FoodBatch, Farmer, LabTest
 from schemas import LabTestCreate, BatchStatusUpdate
+from utils.blockchain_utils import register_batch_onchain
 
 router = APIRouter(prefix="/processor", tags=["processor"])
-
 
 @router.get("/batches")
 def get_batches_for_processor(db: Session = Depends(get_db)):
@@ -63,6 +63,46 @@ def upload_lab_test(payload: LabTestCreate, db: Session = Depends(get_db)):
 
     return {"message": "Lab test uploaded successfully"}
 
+@router.post("/sync-blockchain/{batch_id}")
+def sync_batch_to_blockchain(batch_id: int, db: Session = Depends(get_db)):
+    batch = db.get(FoodBatch, batch_id)
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+
+    if batch.status != "approved":
+        raise HTTPException(
+            status_code=400,
+            detail="Only approved batches can be synced to blockchain"
+        )
+
+    if batch.blockchain_tx:
+        return {
+            "message": "Batch already synced",
+            "blockchain_tx": batch.blockchain_tx
+        }
+
+    farmer = db.get(Farmer, batch.farmer_id)
+    if not farmer:
+        raise HTTPException(status_code=404, detail="Farmer not found")
+
+    try:
+        tx_hash = register_batch_onchain(
+            batch.id,
+            batch.crop_type,
+            batch.quantity_kg,
+            farmer.wallet_address
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    batch.blockchain_tx = tx_hash
+    db.add(batch)
+    db.commit()
+
+    return {
+        "message": "Batch successfully synced to blockchain",
+        "blockchain_tx": tx_hash
+    }
 
 @router.patch("/batch-status")
 def update_batch_status(payload: BatchStatusUpdate, db: Session = Depends(get_db)):
