@@ -1,62 +1,91 @@
 import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
-import Navbar from "../components/Navbar";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useRouter } from "expo-router";
+import API from "@/services/api";
 
-export default function RequestSync() {
-  const [loading, setLoading] = useState(false);
-  const [synced, setSynced] = useState(false);
+export default function RequestSyncBlockchain() {
+  const router = useRouter();
+  const [batchId, setBatchId] = useState("");
 
-  const syncBlockchain = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setSynced(true);
-    }, 2000);
+  const syncBatch = async () => {
+    if (!batchId) {
+      Alert.alert("Batch ID is required");
+      return;
+    }
+
+    try {
+      const res = await API.post(`/processor/sync-blockchain/${batchId}`);
+
+      Alert.alert(
+        "Success",
+        res.data.message + "\n\nTX:\n" + res.data.blockchain_tx
+      );
+      router.back();
+    } catch (e: any) {
+      Alert.alert(
+        "Error",
+        e?.response?.data?.detail || "Failed to sync batch"
+      );
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Navbar />
-      <Text style={styles.title}>Blockchain Sync</Text>
+      <Text style={styles.title}>Sync Batch to Blockchain</Text>
 
-      {!loading && !synced && (
-        <TouchableOpacity style={styles.syncButton} onPress={syncBlockchain}>
-          <Text style={styles.syncText}>Request Blockchain Sync</Text>
-        </TouchableOpacity>
-      )}
+      <TextInput
+        style={styles.input}
+        placeholder="Batch ID"
+        keyboardType="numeric"
+        value={batchId}
+        onChangeText={setBatchId}
+      />
 
-      {loading && <ActivityIndicator size="large" color="#16a34a" />}
-
-      {synced && (
-        <Text style={styles.success}>
-          Synced Successfully ✅{"\n"}
-          Tx Hash: 0xA94F...32B
-        </Text>
-      )}
+      <TouchableOpacity style={styles.button} onPress={syncBatch}>
+        <Text style={styles.buttonText}>Request Sync</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f0fdf4", padding: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: "#f0fdf4",
+    padding: 20,
+    justifyContent: "center",
+  },
   title: {
     fontSize: 26,
     fontWeight: "bold",
     color: "#15803d",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 25,
   },
-  syncButton: {
+  input: {
+    backgroundColor: "#fff",
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    marginBottom: 14,
+  },
+  button: {
     backgroundColor: "#16a34a",
-    padding: 15,
-    borderRadius: 30,
+    padding: 16,
+    borderRadius: 12,
     alignItems: "center",
   },
-  syncText: { color: "#fff", fontWeight: "600" },
-  success: {
-    marginTop: 30,
-    textAlign: "center",
+  buttonText: {
+    color: "#fff",
     fontWeight: "bold",
-    color: "#166534",
+    fontSize: 16,
   },
 });

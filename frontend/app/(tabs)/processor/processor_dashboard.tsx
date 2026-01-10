@@ -22,8 +22,8 @@ export default function ProcessorDashboard() {
     { 
       title: "Request Sync to Blockchain", 
       icon: "cloud-upload", 
-      // route: "/processor/request-sync", 
-      special: true // mark special for gradient styling
+      route: "/processor/request-sync", 
+      special: true 
     },
   ];
 

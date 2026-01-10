@@ -1,80 +1,129 @@
 import { useState } from "react";
-import { Text, View, StyleSheet, TouchableOpacity, Alert } from "react-native";
-import * as DocumentPicker from "expo-document-picker";
-import Navbar from "../components/Navbar";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useRouter } from "expo-router";
+import API from "@/services/api";
 
 export default function UploadLabTest() {
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [aiResult, setAiResult] = useState<string | null>(null);
+  const router = useRouter();
 
-  const pickFile = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: ["application/pdf", "image/*"],
-    });
+  const [batchId, setBatchId] = useState("");
+  const [purity, setPurity] = useState("");
+  const [heavyMetalsSafe, setHeavyMetalsSafe] = useState("");
+  const [pesticidesSafe, setPesticidesSafe] = useState("");
+  const [remarks, setRemarks] = useState("");
 
-    if (!result.canceled) {
-      setFileName(result.assets[0].name);
-      setAiResult(null);
+  const submitLabTest = async () => {
+    if (!batchId || !purity || !heavyMetalsSafe || !pesticidesSafe) {
+      Alert.alert("All required fields must be filled");
+      return;
     }
-  };
 
-  const runAIAnalysis = () => {
-    const isAuthentic = Math.random() > 0.3;
-    setAiResult(isAuthentic ? "Authentic ✅ (97%)" : "Suspicious ⚠️ (Possible Adulteration)");
+    try {
+      await API.post("/processor/lab-test", {
+        batch_id: Number(batchId),
+        purity_percent: Number(purity),
+        heavy_metals_safe: heavyMetalsSafe,
+        pesticides_safe: pesticidesSafe,
+        remarks,
+      });
+
+      Alert.alert("Success", "Lab test uploaded successfully");
+      router.back();
+    } catch (e: any) {
+      Alert.alert(
+        "Error",
+        e?.response?.data?.detail || "Failed to upload lab test"
+      );
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Navbar />
       <Text style={styles.title}>Upload Lab Test</Text>
 
-      <TouchableOpacity style={styles.primaryButton} onPress={pickFile}>
-        <Text style={styles.primaryText}>Upload PDF / Image</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Batch ID"
+        keyboardType="numeric"
+        value={batchId}
+        onChangeText={setBatchId}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Purity (%)"
+        keyboardType="numeric"
+        value={purity}
+        onChangeText={setPurity}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Heavy Metals Safe? (yes/no)"
+        value={heavyMetalsSafe}
+        onChangeText={setHeavyMetalsSafe}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Pesticides Safe? (yes/no)"
+        value={pesticidesSafe}
+        onChangeText={setPesticidesSafe}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Remarks (optional)"
+        value={remarks}
+        onChangeText={setRemarks}
+      />
+
+      <TouchableOpacity style={styles.button} onPress={submitLabTest}>
+        <Text style={styles.buttonText}>Submit Lab Test</Text>
       </TouchableOpacity>
-
-      {fileName && <Text style={styles.file}>Uploaded: {fileName}</Text>}
-
-      {fileName && (
-        <TouchableOpacity style={styles.secondaryButton} onPress={runAIAnalysis}>
-          <Text style={styles.secondaryText}>Run AI Analysis</Text>
-        </TouchableOpacity>
-      )}
-
-      {aiResult && <Text style={styles.result}>{aiResult}</Text>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f0fdf4", padding: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: "#f0fdf4",
+    padding: 20,
+    justifyContent: "center",
+  },
   title: {
     fontSize: 26,
     fontWeight: "bold",
-    textAlign: "center",
     color: "#15803d",
-    marginBottom: 20,
+    textAlign: "center",
+    marginBottom: 25,
   },
-  primaryButton: {
-    backgroundColor: "#16a34a",
-    padding: 15,
-    borderRadius: 25,
-    alignItems: "center",
-  },
-  primaryText: { color: "#fff", fontWeight: "600" },
-  secondaryButton: {
-    borderColor: "#16a34a",
+  input: {
+    backgroundColor: "#fff",
+    padding: 14,
+    borderRadius: 12,
     borderWidth: 1,
-    padding: 15,
-    borderRadius: 25,
-    alignItems: "center",
-    marginTop: 15,
+    borderColor: "#d1d5db",
+    marginBottom: 14,
   },
-  secondaryText: { color: "#16a34a", fontWeight: "600" },
-  file: { marginTop: 15, color: "#166534" },
-  result: {
-    marginTop: 20,
+  button: {
+    backgroundColor: "#15803d",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "#fff",
     fontWeight: "bold",
-    color: "#166534",
     fontSize: 16,
   },
 });
