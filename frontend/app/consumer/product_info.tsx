@@ -36,35 +36,33 @@ export default function ProductInfoScreen() {
         const traceRes = await API.get(`/consumer/trace/${batchId}`);
         // setJourneySteps(traceRes.data.journey);
         setJourneySteps([
-  {
-    icon: "sprout",
-    title: "Harvested",
-    desc: `Harvested by ${traceRes.data.farmer_name}`,
-    date: "10 Jan 2025",
-    location: "Uttarakhand, India",
-  },
-  {
-    icon: "truck",
-    title: "Transported",
-    desc: "Cold-chain transport maintained",
-    date: "12 Jan 2025",
-    location: "Dehradun",
-  },
-  {
-    icon: "package-variant",
-    title: "Packaged",
-    desc: "Packaged under safety norms",
-    date: "14 Jan 2025",
-    location: "Haridwar",
-  },
-]);
+          {
+            icon: "sprout",
+            title: "Harvested",
+            desc: `Harvested by ${traceRes.data.farmer_name}`,
+            date: traceRes.data.harvest_date || "N/A",
+            location: traceRes.data.farmer_location || "Unknown",
+          },
+          {
+            icon: "truck",
+            title: "Transported",
+            desc: "Cold-chain transport maintained",
+            date: "12 Jan 2025",
+            location: "Dehradun",
+          },
+          {
+            icon: "package-variant",
+            title: "Packaged",
+            desc: "Packaged under safety norms",
+            date: "14 Jan 2025",
+            location: "Haridwar",
+          },
+        ]);
 
         setCropType(traceRes.data.crop_type);
 
-        const bcRes = await API.get(
-          `/blockchain/batch/${batchId}?crop_type=${traceRes.data.crop_type}`
-        );
-        setOnChain(bcRes.data.on_chain);
+        const bcRes = await API.get(`/regulator/verify/${batchId}`);
+        setOnChain(bcRes.data.on_chain_verified);
       } catch (e) {
         console.log("Trace / Blockchain fetch failed", e);
       } finally {

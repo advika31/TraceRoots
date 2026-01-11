@@ -1,3 +1,4 @@
+// frontend/app/regulator/alerts.tsx
 import { useEffect, useState } from "react";
 import {
   ScrollView,

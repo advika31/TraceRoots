@@ -1,3 +1,4 @@
+// frontend/app/processor/update-batch-status.tsx
 import { useState } from "react";
 import {
   Alert,
@@ -50,12 +51,19 @@ export default function UpdateBatchStatus() {
         onChangeText={setBatchId}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="New Status (processed / approved)"
-        value={newStatus}
-        onChangeText={setNewStatus}
-      />
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => setNewStatus("processed")}
+      >
+        <Text style={styles.buttonText}>Mark as Processed</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => setNewStatus("approved")}
+      >
+        <Text style={styles.buttonText}>Approve Batch</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={updateStatus}>
         <Text style={styles.buttonText}>Update Status</Text>

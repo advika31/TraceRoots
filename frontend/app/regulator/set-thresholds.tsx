@@ -1,3 +1,4 @@
+// frontend/app/regulator/set-thresholds.tsx
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
 import { useState } from "react";
 import Navbar from "../components/Navbar";

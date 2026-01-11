@@ -1,6 +1,7 @@
 # backend/schemas.py
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 class FarmerCreate(BaseModel):
     name: str
@@ -109,7 +110,7 @@ class LabTestOut(BaseModel):
     heavy_metals_safe: str
     pesticides_safe: str
     remarks: str | None
-    tested_at: str
+    tested_at: datetime
 
     class Config:
         from_attributes = True

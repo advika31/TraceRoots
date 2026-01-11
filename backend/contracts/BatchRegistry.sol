@@ -10,6 +10,7 @@ contract BatchRegistry {
         uint256 quantityKg;
         address farmer;
         uint256 timestamp;
+        bool exists;
     }
 
     mapping(uint256 => Batch) public batches;
@@ -26,7 +27,9 @@ contract BatchRegistry {
         string calldata cropType,
         uint256 quantityKg
     ) external {
-        require(batches[batchId].batchId == 0, "Batch already exists");
+        require(bytes(cropType).length > 0, "Crop type required");
+        require(quantityKg > 0, "Quantity must be > 0");
+        require(!batches[batchId].exists, "Batch already exists");
 
         bytes32 fingerprint = keccak256(
             abi.encodePacked(batchId, cropType, quantityKg, msg.sender)
@@ -39,7 +42,8 @@ contract BatchRegistry {
             cropType: cropType,
             quantityKg: quantityKg,
             farmer: msg.sender,
-            timestamp: block.timestamp
+            timestamp: block.timestamp,
+            exists: true
         });
 
         emit BatchRegistered(batchId, msg.sender, fingerprint);

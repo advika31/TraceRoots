@@ -27,7 +27,7 @@ export default function SurplusRedistribution() {
 
     try {
       await API.post("/surplus/redistribute", {
-        batchId: Number(batchId),
+        batch_id: Number(batchId),
         ngo_name: ngoId,
       });
 

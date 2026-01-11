@@ -123,7 +123,18 @@ def update_batch_status(payload: BatchStatusUpdate, db: Session = Depends(get_db
             status_code=400,
             detail=f"Cannot change status from {batch.status} to {payload.new_status}"
         )
-
+    
+    if payload.new_status == "approved":
+        lab = (
+            db.query(LabTest)
+            .filter(LabTest.batch_id == batch.id)
+            .first()
+        )
+        if not lab:
+            raise HTTPException(
+                status_code=400,
+                detail="Lab test required before approval"
+            )
     batch.status = payload.new_status
     db.add(batch)
     db.commit()

@@ -4,6 +4,16 @@
 pragma solidity ^0.8.20;
 
 contract ImpactToken {
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not authorized");
+        _;
+    }
 
     string public name = "ImpactToken";
     string public symbol = "IMPT";
@@ -14,7 +24,7 @@ contract ImpactToken {
 
     event Transfer(address indexed to, uint256 amount);
 
-    function mint(address to, uint256 amount) external {
+    function mint(address to, uint256 amount) external onlyOwner {
         balanceOf[to] += amount;
         totalSupply += amount;
         emit Transfer(to, amount);

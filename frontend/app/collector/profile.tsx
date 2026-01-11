@@ -1,21 +1,51 @@
 // /frontend/app/(tabs)/collector/profile.tsx
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import API from "@/services/api";
 
 export default function Profile() {
   const [collector, setCollector] = useState<any>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
+  const [batchCount, setBatchCount] = useState(0);
+  const [tokens, setTokens] = useState(0);
+
   const router = useRouter();
+  const fetchStats = async (collectorId: number) => {
+    try {
+      const batchRes = await API.get("/batches/all");
+      const myBatches = batchRes.data.filter(
+        (b: any) => b.farmer_id === collectorId
+      );
+      setBatchCount(myBatches.length);
+
+      const tokenRes = await API.get(`/farmers/tokens/${collectorId}`);
+      setTokens(tokenRes.data.tokens);
+    } catch (e) {
+      console.log("Profile stats fetch failed", e);
+    }
+  };
 
   useEffect(() => {
     const loadProfile = async () => {
       const data = await AsyncStorage.getItem("collector");
       const storedAvatar = await AsyncStorage.getItem("collector_avatar");
 
-      if (data) setCollector(JSON.parse(data));
+      if (data) {
+        const parsed = JSON.parse(data);
+        setCollector(parsed);
+        fetchStats(parsed.id);
+      }
+
       if (storedAvatar) setAvatar(storedAvatar);
     };
 
@@ -94,11 +124,11 @@ export default function Profile() {
       {/* Stats */}
       <View style={styles.statsCard}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>12</Text>
+          <Text style={styles.statValue}>{batchCount}</Text>
           <Text style={styles.statLabel}>Batches</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>240</Text>
+          <Text style={styles.statValue}>{tokens}</Text>
           <Text style={styles.statLabel}>Tokens</Text>
         </View>
         <View style={styles.statItem}>

@@ -1,3 +1,4 @@
+// frontend/app/regulator/block-alerts.tsx
 import { View, Text, StyleSheet, ScrollView, TextInput } from "react-native";
 import { useState } from "react";
 import Navbar from "../components/Navbar";

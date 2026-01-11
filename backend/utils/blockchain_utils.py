@@ -30,12 +30,13 @@ def _get_contract(w3: Web3):
 def register_batch_onchain(batch_id: int, crop_type: str, quantity_kg: float, farmer_wallet: str):
     w3 = _get_w3()
     contract = _get_contract(w3)
+    sender = w3.eth.accounts[0]
 
     tx = contract.functions.registerBatch(
         batch_id,
         crop_type,
         int(quantity_kg)
-    ).transact({"from": farmer_wallet})
+    ).transact({"from": sender})
 
     receipt = w3.eth.wait_for_transaction_receipt(tx)
     return receipt.transactionHash.hex()
