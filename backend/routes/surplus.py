@@ -26,6 +26,7 @@ def redistribute_surplus(payload: SurplusCreate, db: Session = Depends(get_db)):
     farmer = db.get(Farmer, batch.farmer_id)
     if farmer:
         mint_tokens(farmer.wallet_address, 10)
+        farmer.tokens += 10
         db.add(farmer)
 
     db.add(batch)

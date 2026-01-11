@@ -1,4 +1,4 @@
-// /frontend/app/(tabs)/signup.tsx
+// /frontend/app/signup.tsx
 
 import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
@@ -25,8 +25,8 @@ export default function Signup() {
   try {
     await API.post("/farmers/register", {
   name,
-  email,
-  password,
+  // email,
+  // password,
   location,
   farm_size: Number(farmSize),
   wallet_address: walletAddress,

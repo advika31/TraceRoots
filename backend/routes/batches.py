@@ -24,20 +24,21 @@ def add_batch(payload: FoodBatchCreate, db: Session = Depends(get_db)):
         quantity_kg=payload.quantity_kg,
         status="pending",
     )
+    # AI prediction
+    batch.nutrition_score = predict_nutrition(batch.crop_type)
+
     db.add(batch)
     db.commit()
     db.refresh(batch)
 
-    # AI prediction
-    batch.nutrition_score = predict_nutrition(batch.crop_type)
-
     # Simulated blockchain
-    batch.blockchain_tx = register_batch_onchain(
-    batch.id,
-    batch.crop_type,
-    batch.quantity_kg,
-    farmer.wallet_address
-)
+    # batch.blockchain_tx = register_batch_onchain(
+    # batch.id,
+    # batch.crop_type,
+    # batch.quantity_kg,
+    # farmer.wallet_address
+    # )
+    
     # QR generation
     qr_data = {
         "batch_id": batch.id,

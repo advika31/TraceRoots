@@ -1,7 +1,14 @@
-// frontend/app/%28tabs%29/login.tsx
+// frontend/app/login.tsx
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import API from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -18,60 +25,57 @@ export default function Login() {
   // };
 
   const handleLogin = async () => {
-  // PROCESSOR (hardcoded demo login)
-  if (role === "Processor") {
-    if (walletAddress === "p" && password === "123") {
+    // PROCESSOR
+    if (role === "Processor") {
       router.replace("/processor/processor_dashboard");
       return;
     }
-    Alert.alert("Invalid Processor credentials");
-    return;
-  }
 
-  // COLLECTOR (wallet-based login)
-  if (role === "Collector") {
-    try {
-      const res = await API.post("/farmers/login", {
-        wallet_address: walletAddress,
-      });
+    // COLLECTOR (wallet-based login)
+    if (role === "Collector") {
+      try {
+        const res = await API.post("/farmers/login", {
+          wallet_address: walletAddress,
+        });
 
-      await AsyncStorage.setItem("collector", JSON.stringify(res.data));
-      router.replace("/collector/collector_dashboard");
-      return;
-    } catch (error: any) {
-      Alert.alert(
-        "Login Failed",
-        error?.response?.data?.detail || "Invalid wallet address"
-      );
+        await AsyncStorage.setItem("collector", JSON.stringify(res.data));
+        router.replace("/collector/collector_dashboard");
+        return;
+      } catch (error: any) {
+        Alert.alert(
+          "Login Failed",
+          error?.response?.data?.detail || "Invalid wallet address"
+        );
+        return;
+      }
+      
+    }
+
+    // CONSUMER & REGULATOR (UI only)
+    if (role === "Consumer") {
+      router.replace("/consumer/consumer_dashboard");
       return;
     }
-  }
 
-  // CONSUMER & REGULATOR (UI only)
-  if (role === "Consumer") {
-    router.replace("/consumer/consumer_dashboard");
-    return;
-  }
+    if (role === "Regulator") {
+      router.replace("/regulator/regulator_dashboard");
+      return;
+    }
 
-  if (role === "Regulator") {
-    router.replace("/regulator/regulator_dashboard");
-    return;
-  }
-
-  Alert.alert("Please select a role");
-};
+    Alert.alert("Please select a role");
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>TraceRoots Login</Text>
 
       <Text style={styles.label}>Wallet Address</Text>
-<TextInput
-  style={styles.input}
-  placeholder="Enter your wallet address"
-  value={walletAddress}
-  onChangeText={setWalletAddress}
-/>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your wallet address"
+        value={walletAddress}
+        onChangeText={setWalletAddress}
+      />
 
       <Text style={styles.label}>Password</Text>
       <TextInput
@@ -87,7 +91,9 @@ export default function Login() {
         style={styles.roleButton}
         onPress={() => setRole("Collector")}
       >
-        <Text style={role === "Collector" ? styles.roleTextActive : styles.roleText}>
+        <Text
+          style={role === "Collector" ? styles.roleTextActive : styles.roleText}
+        >
           Collector
         </Text>
       </TouchableOpacity>
@@ -95,7 +101,9 @@ export default function Login() {
         style={styles.roleButton}
         onPress={() => setRole("Processor")}
       >
-        <Text style={role === "Processor" ? styles.roleTextActive : styles.roleText}>
+        <Text
+          style={role === "Processor" ? styles.roleTextActive : styles.roleText}
+        >
           Processor
         </Text>
       </TouchableOpacity>
@@ -103,7 +111,9 @@ export default function Login() {
         style={styles.roleButton}
         onPress={() => setRole("Regulator")}
       >
-        <Text style={role === "Regulator" ? styles.roleTextActive : styles.roleText}>
+        <Text
+          style={role === "Regulator" ? styles.roleTextActive : styles.roleText}
+        >
           Regulator
         </Text>
       </TouchableOpacity>
@@ -111,7 +121,9 @@ export default function Login() {
         style={styles.roleButton}
         onPress={() => setRole("Consumer")}
       >
-        <Text style={role === "Consumer" ? styles.roleTextActive : styles.roleText}>
+        <Text
+          style={role === "Consumer" ? styles.roleTextActive : styles.roleText}
+        >
           Consumer
         </Text>
       </TouchableOpacity>

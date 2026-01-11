@@ -1,4 +1,4 @@
-// app/collector/sustainability-map.tsx
+// app/regulator/SustainabilityMap.tsx
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import MapView, { Marker, Polygon, Region } from "react-native-maps";

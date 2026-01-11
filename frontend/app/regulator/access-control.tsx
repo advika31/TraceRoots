@@ -1,3 +1,4 @@
+// frontend/app/regulator/access-control.tsx
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from "react-native";
 import { useState } from "react";
 import Navbar from "../components/Navbar";

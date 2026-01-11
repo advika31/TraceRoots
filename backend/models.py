@@ -29,7 +29,12 @@ class FoodBatch(Base):
     nutrition_score = Column(Float, nullable=True)
     blockchain_tx = Column(String, nullable=True)
     qr_path = Column(String, nullable=True)
-    status = Column(String, default="pending")  # pending | distributed
+    status = Column(String, default="pending")  # pending | processed | approved | distributed
+    lab_test = relationship(
+        "LabTest",
+        uselist=False,
+        back_populates="batch"
+    )
 
     farmer = relationship("Farmer", back_populates="batches")
     surplus = relationship("Surplus", back_populates="batch", uselist=False)
@@ -66,7 +71,7 @@ class LabTest(Base):
 
     tested_at = Column(DateTime, default=datetime.utcnow)
 
-    batch = relationship("FoodBatch")
+    batch = relationship("FoodBatch", back_populates="lab_test")
     
 class Regulator(Base):
     __tablename__ = "regulators"

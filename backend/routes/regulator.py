@@ -84,7 +84,7 @@ def regulator_alerts(db: Session = Depends(get_db)):
             db.query(FoodBatch)
             .filter(
                 FoodBatch.farmer_id == farmer.id,
-                FoodBatch.status == "approved"
+                FoodBatch.status.in_(["approved", "distributed"])
             )
             .with_entities(FoodBatch.quantity_kg)
             .all()
