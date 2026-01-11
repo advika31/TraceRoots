@@ -3,13 +3,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Navbar from "../components/Navbar"; // ✅ reusable navbar
 import { useEffect, useState } from "react";
 import API from "@/services/api";
@@ -20,34 +14,32 @@ export default function CollectorDashboard() {
   const [collectorName, setCollectorName] = useState("");
   const [batchCount, setBatchCount] = useState(0);
   const [tokens, setTokens] = useState(0);
-
+  
   useEffect(() => {
-    const loadCollector = async () => {
-      const data = await AsyncStorage.getItem("collector");
-      if (data) {
-        const farmer = JSON.parse(data);
-        setCollectorName(farmer.name);
-      }
-    };
+     const loadCollector = async () => {
+    const data = await AsyncStorage.getItem("collector");
+    if (data) {
+      const farmer = JSON.parse(data);
+      setCollectorName(farmer.name);
+    }
+  };
 
-    loadCollector();
-    const fetchDashboardData = async () => {
-      try {
-        const batchesRes = await API.get("/batches/all");
-        setBatchCount(batchesRes.data.length);
+  loadCollector();
+  const fetchDashboardData = async () => {
+    try {
+      const batchesRes = await API.get("/batches/all");
+      setBatchCount(batchesRes.data.length);
 
-        const data = await AsyncStorage.getItem("collector");
-        const farmer = JSON.parse(data!);
+      // TEMP: using collector ID = 1
+      const tokensRes = await API.get("/farmers/tokens/1");
+      setTokens(tokensRes.data.tokens);
+    } catch (error) {
+      console.log("Dashboard fetch error", error);
+    }
+  };
 
-        const tokensRes = await API.get(`/farmers/tokens/${farmer.id}`);
-        setTokens(tokensRes.data.tokens);
-      } catch (error) {
-        console.log("Dashboard fetch error", error);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
+  fetchDashboardData();
+}, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -55,9 +47,7 @@ export default function CollectorDashboard() {
       <Navbar />
 
       {/* Welcome Message */}
-      <Text style={styles.welcomeText}>
-        Welcome Collector {collectorName} !{" "}
-      </Text>
+      <Text style={styles.welcomeText}>Welcome Collector {collectorName} ! </Text>
 
       {/* Top Status Card */}
       <View style={styles.statusCard}>
@@ -67,6 +57,7 @@ export default function CollectorDashboard() {
         <Text style={styles.statusText}>📦 Total Batches: {batchCount}</Text>
         <Text style={styles.statusText}>🪙 Tokens Earned: {tokens}</Text>
         <Text style={styles.statusText}>🟢 Zone: Sustainable (Green)</Text>
+
       </View>
 
       {/* Features Grid */}
@@ -97,12 +88,13 @@ export default function CollectorDashboard() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.card}
-          onPress={() => router.push("/collector/surplus-redistribution")}
-        >
-          <MaterialIcons name="volunteer-activism" size={30} color="#15803d" />
-          <Text style={styles.cardText}>Donate Surplus</Text>
-        </TouchableOpacity>
+  style={styles.card}
+  onPress={() => router.push("/collector/surplus-redistribution")}
+>
+  <MaterialIcons name="volunteer-activism" size={30} color="#15803d" />
+  <Text style={styles.cardText}>Donate Surplus</Text>
+</TouchableOpacity>
+
 
         <TouchableOpacity
           style={styles.card}
@@ -112,6 +104,7 @@ export default function CollectorDashboard() {
           <Text style={styles.cardText}>Sustainability Map</Text>
         </TouchableOpacity>
       </View>
+
     </ScrollView>
   );
 }
