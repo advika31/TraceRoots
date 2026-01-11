@@ -1,191 +1,226 @@
-1. Round 2 Objective
+## Round 2 Objective
 
-The goal of Round 2 is to evolve TraceRoots from a herb authenticity platform into a universal trust infrastructure for fresh agricultural produce, including fruits and vegetables, while deepening sustainability, surplus management, and export readiness.
+The goal of Round 2 is to evolve TraceRoots from a herb authenticity platform into a broader trust infrastructure for fresh agricultural produce, while strengthening sustainability, surplus management, and real-world readiness.
 
-2. Scope Expansion in Round 2
-Original Scope (Round 1)
+Round 2 builds directly on what we implemented in Round 1 and extends the system toward fruits, vegetables, and perishable supply chains.
 
-Ayurvedic herbs only
+## Scope Expansion
+Round 1 (Implemented)
 
-Authenticity verification
+Focus on Ayurvedic herbs
 
-Basic blockchain traceability
+AI-based authenticity verification
 
-Expanded Scope (Round 2)
+Batch creation and lifecycle tracking
 
-Fruits (fresh & export-grade)
+Blockchain-backed traceability
 
-Vegetables (leafy, root, seasonal)
+QR-based consumer transparency
 
-Perishable produce
+Role-based dashboards (farmer, consumer, NGO, regulator)
 
-Quality, freshness, and shelf-life tracking
+Initial surplus tracking workflow
 
-Surplus donation ecosystem
+Round 2 (Current Expansion)
 
-3. AI Enhancements in Round 2
-3.1 Quality & Freshness Grading
+Inclusion of fruits (fresh & export-grade)
 
-New AI models are introduced to:
+Inclusion of vegetables (leafy, root, seasonal)
 
-Detect physical defects
+Support for perishable produce
 
-Measure freshness level
+Quality and freshness tracking (in addition to authenticity)
 
-Estimate remaining shelf life
+Structured surplus donation ecosystem
 
-Grade produce for domestic vs export markets
+Better positioning for export and regulatory workflows
 
-Benefits
+This reflects a natural evolution, not a pivot.
+
+ AI Enhancements in Round 2
+1. Quality & Freshness Grading (Partially Implemented)
+
+We have extended the AI layer beyond authenticity toward:
+
+Detecting visible defects
+
+Estimating quality from images
+
+Basic freshness indicators
+
+Categorizing produce suitability (local vs higher grade)
+
+Planned refinements:
+
+More accurate shelf-life estimation
+
+Stronger grading models for export standards
+
+Impact:
 
 Reduced spoilage
 
-Better price discovery
+Better pricing signals
 
-Higher farmer earnings
+Increased farmer value
 
-3.2 Multi-Modal Verification
+2. Multi-Modal Verification (Partially Designed, Extensible)
 
-Round 2 AI supports:
+Current implementation:
 
 Image-based analysis
 
-Sensor data (temperature, humidity)
+Metadata-based validation
 
-Optional lab data integration
+Architecture already supports adding:
 
-This enables continuous quality validation, not just one-time checks.
+Sensor inputs (temperature, humidity)
 
-4. Cold Chain & Logistics Intelligence
+Optional lab data
 
-Round 2 introduces cold chain awareness to prevent post-harvest losses.
+Periodic validation checkpoints
 
-Capabilities
+This makes the system extensible rather than theoretical.
 
-Temperature & humidity logging
+❄️ Cold Chain & Logistics Intelligence (Early Stage)
 
-Quality degradation alerts
+Round 2 introduces awareness of post-harvest loss factors.
 
-Cold chain compliance records
+Currently supported conceptually and architecturally:
 
-Spoilage risk prediction
+Logging of movement stages
 
-Outcome
+Time-based quality decay tracking
 
-Lower logistics losses
+Infrastructure ready for temperature/humidity data
 
-Stronger export compliance
+Planned evolution:
 
-Higher trust from buyers
+Alerts for quality degradation
 
-5. Advanced Surplus Management System
-Round 2 Improvements
+Cold-chain compliance logs
 
-Surplus prediction based on AI demand signals
+Spoilage risk indicators
 
-Early surplus declaration
+Positioning:
 
-NGO pre-booking system
+Built to support cold chain intelligence as data becomes available.
 
-Geo-based matching to reduce transport cost
+## ♻️ Advanced Surplus Management (Partially Implemented)
 
-Impact
+Round 1 already supports:
+
+Manual surplus marking
+
+NGO visibility
+
+Claiming and donation confirmation
+
+On-chain donation proof
+
+Round 2 enhancements underway:
+
+Smarter surplus identification
+
+Early declaration workflows
+
+Geo-aware matching between donor and NGO
+
+Better donation lifecycle tracking
+
+Impact:
 
 Reduced food waste
 
-Faster donation cycles
+Faster redistribution
 
-Transparent donation proof
+Higher transparency
 
-6. Dynamic Pricing & Incentive Engine
+## 💰 Incentive & Impact Layer (Prototype Level)
 
-Round 2 introduces a smarter incentive layer.
+Currently implemented:
 
-Features
+Impact recognition model
 
-Quality-based premium pricing
+Token/incentive concept integrated into design
 
-Higher rewards for early surplus declaration
+Dashboard visibility for contribution
 
-Impact tokens tied to sustainability actions
+Being refined in Round 2:
 
-Result
+Linking incentives to:
 
-Fairer farmer compensation
+Quality compliance
 
-Motivation for responsible practices
+Early surplus declaration
 
-7. Sustainability & ESG Metrics
+Sustainable practices
 
-TraceRoots Round 2 embeds sustainability at batch level.
+This ensures incentives remain behavior-driven, not gamified noise.
 
-Tracked Metrics
+## 🌱 Sustainability & ESG Integration (Foundational Layer Built)
 
-Carbon footprint estimation
+Currently supported:
 
-Water usage indicators
+Batch-level traceability
 
-Sustainable harvesting/farming scores
+Transparent origin tracking
 
-Consumer Visibility
+Ethical supply chain visibility
 
-Eco-score badges
+Round 2 extensions:
 
-Sustainability highlights via QR scan
+Sustainability indicators per batch
 
-8. Regulatory & Export Readiness
+Eco-score style metadata for consumers
 
-Round 2 prepares TraceRoots for real-world adoption.
+Making sustainability visible through QR scan
 
-Planned Integrations
+This keeps sustainability embedded, not superficial.
 
-AYUSH / NMPB (herbs)
+## 🏛️ Regulatory & Export Readiness (Architecture-Aligned)
 
-FSSAI (fruits & vegetables)
+What is already aligned:
 
-Export certification workflows
+Immutable batch history
 
-Automated compliance records
+Audit-ready data
 
-9. Platform & Architecture Upgrades
-Technical Improvements
+Regulator role built into the system
 
-Scalable multi-crop data models
+Transparent lifecycle records
 
-Modular smart contracts
+What Round 2 moves toward:
 
-Improved role-based access
+Alignment with FSSAI-style food traceability
 
-Faster query & analytics layer
+Export documentation workflows
 
-Security Enhancements
+Structured compliance metadata
 
-Stronger access controls
+Regulator-grade audit views
 
-Improved audit trails
+Positioning:
 
-Better data integrity guarantees
+The system is architected for compliance, even if integrations are future-facing.
 
-10. Long-Term Vision Beyond Round 2
+## ⚙️ Platform & Architecture Improvements
+    Already implemented
 
-DAO-based farmer governance
+    Modular roles (farmer, collector, processor, NGO, regulator, consumer)
 
-Cross-border blockchain certification
+    Separated on-chain vs off-chain architecture
 
-Carbon credit tokenization
+    Scalable data model for multi-crop support
 
-Global TraceRoots Trust Label
+    QR-based public interface
 
-AI-driven policy insights for regulators
+    Strengthened in Round 2
 
-11. Round 2 Success Metrics
+    Cleaner role-based access
 
-Increased farmer adoption
+    More flexible data schema
 
-Reduction in spoilage & waste
+    Better logging and traceability depth
 
-Higher surplus donation volumes
-
-Improved export acceptance rates
-
-Stronger consumer trust indicators
+    Stronger audit integrity
