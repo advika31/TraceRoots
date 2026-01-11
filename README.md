@@ -52,6 +52,10 @@ TraceRoots combines:
 - [Frontend Explanation](videos/Frontend_explanation.mp4)
 - [Backend Explanation](videos/Backend_explanation.mp4)
 - [AI Storytelling](videos/AI_Storytelling.mp4)
+## Updates after Round 2 Explanantions
+- [Frontend](https://drive.google.com/file/d/1m-oHxAWYNjIJphk4FIMZmVmuA5JDfhrn/view)
+- [Backend](https://drive.google.com/file/d/1UzUCU7CNwt5GU0r7z1rAhlGQcgEVTmaX/view)
+
 
 ## 📚 Documentation
 
