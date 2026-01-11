@@ -1,73 +1,79 @@
 ## System Diagram
-+--------------------+
-|      FARMER        |
-| (Herbs / Fruits /  |
-|  Vegetables)       |
-+---------+----------+
-          |
-          | Register Batch
-          | (images, quantity,
-          |  geo-location)
-          v
-+--------------------+
-|  AI VERIFICATION   |
-|--------------------|
-| • Herb Fingerprint |
-| • Quality Check    |
-| • Freshness Score  |
-+---------+----------+
-          |
-          | Authenticity /
-          | Quality Hash
-          v
-+--------------------+
-|    BLOCKCHAIN      |
-|--------------------|
-| • Batch ID         |
-| • Verification Hash|
-| • Ownership Logs   |
-| • Surplus Records  |
-+----+--------+------+
-     |        |
-     |        |
-     |        |
-     v        v
-+--------+  +---------+
-|PROCESS |  | SURPLUS |
-|OR      |  | TRACKING|
-+---+----+  +----+----+
-    |            |
-    | Ownership  | Donation Proof
-    | Transfer   |
-    v            v
-+---------+  +----------+
-|DISTRIB |  |   NGO     |
-|UTOR    |  | DASHBOARD |
-+----+----+  +----+-----+
-     |            |
-     | Supply     | Confirm Receipt
-     | Chain      |
-     v            v
-+--------------------+
-|     CONSUMER       |
-|--------------------|
-| QR Scan → View     |
-| Origin, AI Proof,  |
-| Sustainability,    |
-| Donation Impact    |
-+--------------------+
++----------------------+
+|        FARMER        |
+|  (Herbs/Fruits/Veg)   |
++----------+-----------+
+           |
+           | Register Batch
+           | (images, quantity, geo-location)
+           v
++----------------------+
+|   AI VERIFICATION    |
+|----------------------|
+| • Quality Check       |
+| • Authenticity Score  |
+| • Freshness Analysis   |
++----------+-----------+
+           |
+           | Verification Hash
+           v
++----------------------+
+|       BLOCKCHAIN      |
+|----------------------|
+| • Batch ID             |
+| • Verification Hash    |
+| • Ownership Logs       |
+| • Status Changes       |
+| • Donation Records     |
++----+-----------+------+
+     |           |      
+     |           |      
+     v           v      
++----------+   +----------------+
+| COLLECTOR |   |   PROCESSOR     |
+| (Pickup & |   | (Cleaning, Pack)|
+|  Transport)|   +--------+--------+
++-----+-----+            |
+      |                  | Update Processing
+      | Movement Logs     v
+      +----------------> BLOCKCHAIN
+     
++----------------------+
+|        REGULATOR       |
+|  (Audit & Monitoring)   |
++-----------+------------+
+            |
+            | Verify compliance
+            v
+         BLOCKCHAIN
+
++----------------------+
+|         NGO           |
+| (View surplus & claim)|
++-----------+-----------+
+            |
+            | Confirm donation
+            v
+         BLOCKCHAIN
+
++----------------------+
+|       CONSUMER         |
+|----------------------|
+| Scan QR Code → View     |
+| • Product origin         |
+| • AI verification proof  |
+| • Supply chain journey    |
+| • Sustainability impact   |
++----------------------+
+
 
 ## Batch Lifecycle Diagram
-[ Registered ]
-      ↓
-[ Verified ]
-      ↓
-[ Processed ]
-      ↓
-[ Distributed ]
-     ↙       ↘
-[Consumed]  [Donated]
-
+flowchart LR
+    A[Registered] --> B[Verified]
+    B --> C[Processed]
+    C --> D[Distributed]
+    D --> E[Consumed]
+    D --> F[Donated]
 
 ## 1. End-to-End System Flow :
 Farmer registers on the TraceRoots platform.
@@ -106,39 +112,38 @@ Batch is created with a unique Batch ID.
 Batch status is set to “Registered”.
 
 ## 3. AI Verification Flow
-Purpose
+      Purpose
 
-To ensure authenticity for herbs and quality/freshness for fruits & vegetables.
+      To ensure authenticity for herbs and quality/freshness for fruits & vegetables.
+      Step-by-Step Flow
 
-Step-by-Step Flow
+      Input data is received:
 
-Input data is received:
+      Images
 
-Images
+      Sensor data (if available)
 
-Sensor data (if available)
+      Lab / chemical data (optional)
 
-Lab / chemical data (optional)
+      Data preprocessing is applied:
 
-Data preprocessing is applied:
+      Image normalization
 
-Image normalization
+      Noise removal
 
-Noise removal
+      Feature extraction using AI models:
 
-Feature extraction using AI models:
+      Herb fingerprinting (species identification)
 
-Herb fingerprinting (species identification)
+      Produce quality models (freshness, defects)
 
-Produce quality models (freshness, defects)
+      Similarity matching against reference datasets.
 
-Similarity matching against reference datasets.
+      Authenticity or quality score is generated.
 
-Authenticity or quality score is generated.
+      AI output is converted into a cryptographic hash.
 
-AI output is converted into a cryptographic hash.
-
-Hash is sent to the blockchain layer.
+      Hash is sent to the blockchain layer.
 
 ## 4. Blockchain Batch Lifecycle Flow
 
