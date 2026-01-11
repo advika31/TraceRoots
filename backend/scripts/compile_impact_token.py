@@ -13,7 +13,7 @@ def main():
     with open(source_path, "r", encoding="utf-8") as f:
         source = f.read()
 
-    version = "0.8.20"
+    version = "0.8.17"
     install_solc(version)
 
     compiled_sol = compile_standard(

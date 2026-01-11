@@ -57,7 +57,7 @@ export default function NewCollection() {
           onPress: () =>
             router.replace({
               pathname: "/collector/generate-batch",
-              params: { batchId: res.data.id },
+              params: { batchId: String(res.data.id) },
             }),
         },
       ]);
