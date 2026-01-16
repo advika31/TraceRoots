@@ -1,3 +1,4 @@
+// frontend/app/regulator/auth-verification.tsx
 import { useState } from "react";
 import {
   Alert,

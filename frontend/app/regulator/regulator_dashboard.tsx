@@ -1,6 +1,13 @@
+// frontend/app/regulator/regulator_dashboard.tsx
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Navbar from "../components/Navbar";
 
 export default function RegulatorDashboard() {
@@ -10,22 +17,47 @@ export default function RegulatorDashboard() {
     {
       title: "Digital Twin & Sustainability",
       actions: [
-        { title: "Live Interactive Map", icon: "map", route: "/regulator/SustainabilityMap" },
-        { title: "Zone Details", icon: "layers", route: "/regulator/zone-details" },
+        {
+          title: "Live Interactive Map",
+          icon: "map",
+          route: "/regulator/SustainabilityMap",
+        },
+        {
+          title: "Zone Details",
+          icon: "layers",
+          route: "/regulator/zone-details",
+        },
       ],
     },
     {
       title: "Alerts & Notifications",
       actions: [
-        { title: "Real-Time Alerts", icon: "alert", route: "/regulator/alerts" },
-        { title: "Over-Harvesting Block", icon: "block-helper", route: "/regulator/block-alerts", special: true },
+        {
+          title: "Real-Time Alerts",
+          icon: "alert",
+          route: "/regulator/alerts",
+        },
+        {
+          title: "Over-Harvesting Block",
+          icon: "block-helper",
+          route: "/regulator/block-alerts",
+          special: true,
+        },
       ],
     },
     {
       title: "Traceability & Compliance",
       actions: [
-        { title: "Batch Lookup", icon: "arrow-up", route: "/regulator/batch-lookup" },
-        { title: "Authenticity Verification", icon: "check", route: "/regulator/auth-verification" },
+        {
+          title: "Batch Lookup",
+          icon: "arrow-up",
+          route: "/regulator/batch-lookup",
+        },
+        {
+          title: "Authenticity Verification",
+          icon: "check",
+          route: "/regulator/auth-verification",
+        },
       ],
     },
     {
@@ -33,22 +65,39 @@ export default function RegulatorDashboard() {
       actions: [
         // { title: "Harvesting Analytics", icon: "rise", route: "/regulator/harvest-analytics" },
         // { title: "Compliance Dashboard", icon: "verified", route: "/regulator/compliance" },
-        { title: "Export Data", icon: "download", route: "/regulator/export-data", special: true },
+        {
+          title: "Export Data",
+          icon: "download",
+          route: "/regulator/export-data",
+          special: true,
+        },
       ],
     },
     {
       title: "Administrative Tools",
       actions: [
-        { title: "Set/Adjust Thresholds", icon: "tune", route: "/regulator/set-thresholds", special: true },
-        { title: "Regulator Messaging", icon: "message-text", route: "/regulator/messaging" },
-        { title: "Access Control", icon: "account-cog", route: "/regulator/access-control" },
+        {
+          title: "Set/Adjust Thresholds",
+          icon: "tune",
+          route: "/regulator/set-thresholds",
+          special: true,
+        },
+        {
+          title: "Regulator Messaging",
+          icon: "message-text",
+          route: "/regulator/messaging",
+        },
+        {
+          title: "Access Control",
+          icon: "account-cog",
+          route: "/regulator/access-control",
+        },
       ],
     },
   ];
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-            
       <Navbar />
       <Text style={styles.title}>Welcome Regulator ID: REG12</Text>
 
@@ -68,7 +117,12 @@ export default function RegulatorDashboard() {
                     size={28}
                     color={action.special ? "#fff" : "#16a34a"}
                   />
-                  <Text style={[styles.cardText, action.special && styles.specialCardText]}>
+                  <Text
+                    style={[
+                      styles.cardText,
+                      action.special && styles.specialCardText,
+                    ]}
+                  >
                     {action.title}
                   </Text>
                 </View>
