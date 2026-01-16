@@ -1,3 +1,4 @@
+// frontend/app/processor/history.tsx
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import API from "@/services/api";
@@ -19,12 +20,11 @@ export default function ProcessorHistory() {
       try {
         const res = await API.get("/processor/batches");
         if (Array.isArray(res.data)) {
-  setBatches(res.data);
-} else {
-  console.log("Unexpected response:", res.data);
-  setBatches([]);
-}
-
+          setBatches(res.data);
+        } else {
+          console.log("Unexpected response:", res.data);
+          setBatches([]);
+        }
       } catch (e) {
         console.log("Failed to fetch processor batches", e);
       } finally {

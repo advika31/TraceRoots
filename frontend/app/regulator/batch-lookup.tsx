@@ -1,3 +1,4 @@
+// frontend/app/regulator/batch-lookup.tsx
 import { useState } from "react";
 import {
   StyleSheet,

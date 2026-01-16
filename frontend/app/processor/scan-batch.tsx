@@ -1,3 +1,4 @@
+// frontend/app/processor/scan-batch.tsx
 import { useEffect, useState } from "react";
 import { Text, View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
