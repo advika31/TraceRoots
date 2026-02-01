@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 from database import engine, Base
-from routes import farmers, batches, regulator, processor, consumer
+from routes import farmers, batches, regulator, processor, consumer, surplus
 
 Base.metadata.create_all(bind=engine)
 
@@ -28,6 +28,7 @@ app.include_router(batches.router)
 app.include_router(regulator.router)
 app.include_router(processor.router)
 app.include_router(consumer.router)
+app.include_router(surplus.router)
 
 @app.get("/")
 def home():

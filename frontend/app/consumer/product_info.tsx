@@ -1,75 +1,71 @@
 // frontend/app/consumer/product_info.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { ConsumerAPI } from '../../services/api';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ProductInfo() {
-  const { batchId } = useLocalSearchParams();
-  const [loading, setLoading] = useState(true);
+  const { batchId } = useLocalSearchParams(); 
   const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (batchId) fetchData(batchId as string);
+    if (batchId) fetchStory();
   }, [batchId]);
 
-  const fetchData = async (id: string) => {
-    const result = await ConsumerAPI.getStory(id);
-    if (result) {
-      setData(result);
-    } else {
-      Alert.alert("Error", "Product not found");
+  const fetchStory = async () => {
+    try {
+      const storyData = await ConsumerAPI.getStory(batchId as string);
+      setData(storyData);
+    } catch (e) {
+      alert("Product not found!");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#2e7d32"/></View>;
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#2e7d32" /></View>;
   if (!data) return <View style={styles.center}><Text>Product Not Found</Text></View>;
-
-  const { batch_details, story_narrative, verification } = data;
 
   return (
     <ScrollView style={styles.container}>
       {/* Hero Image */}
-      <Image source={{ uri: `http://192.168.1.9:8000${batch_details.video_story_url}` }} style={styles.image} />
+      <Image source={{ uri: `http://192.168.1.8:8000${data.batch_details.image}` }} style={styles.heroImage} />
       
       <View style={styles.content}>
-        {/* Title & Badge */}
+        {/* Title & Verification */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>{batch_details.crop_name}</Text>
-            <Text style={styles.subtitle}>Harvested {new Date(batch_details.harvest_date).toLocaleDateString()}</Text>
+          <Text style={styles.title}>{data.batch_details.crop_name}</Text>
+          <View style={styles.badge}>
+            <Ionicons name="shield-checkmark" size={16} color="#fff" />
+            <Text style={styles.badgeText}>Verified</Text>
           </View>
-          <Ionicons name="shield-checkmark" size={40} color="#2e7d32" />
         </View>
 
         {/* The AI Story */}
-        <View style={styles.storyBox}>
-          <Text style={styles.storyTitle}>🌱 The Journey</Text>
-          <Text style={styles.storyText}>{story_narrative}</Text>
-        </View>
+        <Text style={styles.sectionTitle}>The Journey</Text>
+        <Text style={styles.storyText}>{data.story_narrative}</Text>
 
         {/* Timeline */}
-        <Text style={styles.sectionHeader}>Traceability Timeline</Text>
-        {data.timeline.map((event: any, i: number) => (
-          <View key={i} style={styles.timelineItem}>
-            <View style={styles.timelineLine} />
-            <View style={styles.timelineIcon}>
-              <Ionicons name={event.icon} size={20} color="#fff" />
+        <View style={styles.timeline}>
+          {data.timeline.map((item: any, index: number) => (
+            <View key={index} style={styles.timelineItem}>
+              <View style={styles.timelineIcon}>
+                <Ionicons name={item.icon as any} size={20} color="#fff" />
+              </View>
+              <View style={styles.timelineContent}>
+                <Text style={styles.timelineDate}>{item.date}</Text>
+                <Text style={styles.timelineEvent}>{item.event}</Text>
+                <Text style={styles.timelineDesc}>{item.desc}</Text>
+              </View>
             </View>
-            <View style={styles.timelineContent}>
-              <Text style={styles.eventTitle}>{event.event}</Text>
-              <Text style={styles.eventDate}>{event.date}</Text>
-            </View>
-          </View>
-        ))}
+          ))}
+        </View>
 
-        {/* Blockchain Verification */}
-        <View style={styles.verifyBox}>
-          <Text style={styles.verifyTitle}>Blockchain Verified</Text>
-          <Text style={styles.hash}>Hash: {verification.blockchain_hash}</Text>
-          <Text style={styles.status}>Immutable • Transparent • Trusted</Text>
+        {/* Blockchain Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Blockchain ID: {data.verification.blockchain_hash}</Text>
         </View>
       </View>
     </ScrollView>
@@ -79,23 +75,21 @@ export default function ProductInfo() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  image: { width: '100%', height: 250, backgroundColor: '#eee' },
-  content: { padding: 20,  borderTopLeftRadius: 25, borderTopRightRadius: 25, marginTop: -20, backgroundColor: '#fff' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1b5e20' },
-  subtitle: { color: '#666', fontSize: 14 },
-  storyBox: { backgroundColor: '#f1f8e9', padding: 20, borderRadius: 15, marginBottom: 25 },
-  storyTitle: { fontWeight: 'bold', color: '#33691e', marginBottom: 10, fontSize: 16 },
-  storyText: { lineHeight: 24, color: '#333', fontSize: 15 },
-  sectionHeader: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' },
-  timelineItem: { flexDirection: 'row', marginBottom: 20, position: 'relative' },
-  timelineLine: { position: 'absolute', left: 20, top: 0, bottom: -20, width: 2, backgroundColor: '#ddd', zIndex: -1 },
-  timelineIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#2e7d32', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-  timelineContent: { justifyContent: 'center' },
-  eventTitle: { fontWeight: 'bold', fontSize: 16, color: '#333' },
-  eventDate: { color: '#888', fontSize: 12 },
-  verifyBox: { marginTop: 20, padding: 15, backgroundColor: '#212121', borderRadius: 10, alignItems: 'center' },
-  verifyTitle: { color: '#4caf50', fontWeight: 'bold', fontSize: 16, marginBottom: 5 },
-  hash: { color: '#757575', fontSize: 10, marginBottom: 5 },
-  status: { color: '#aaa', fontSize: 12 }
+  heroImage: { width: '100%', height: 250 },
+  content: { padding: 20, borderTopLeftRadius: 30, borderTopRightRadius: 30, marginTop: -30, backgroundColor: '#fff' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#333' },
+  badge: { flexDirection: 'row', backgroundColor: '#2e7d32', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, alignItems: 'center' },
+  badgeText: { color: '#fff', marginLeft: 5, fontWeight: 'bold' },
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#1b5e20' },
+  storyText: { fontSize: 16, lineHeight: 24, color: '#555', marginBottom: 30 },
+  timeline: { borderLeftWidth: 2, borderLeftColor: '#e0e0e0', marginLeft: 10 },
+  timelineItem: { flexDirection: 'row', marginBottom: 25, marginLeft: -16, alignItems: 'center' },
+  timelineIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#2e7d32', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  timelineContent: { flex: 1, backgroundColor: '#f5f5f5', padding: 15, borderRadius: 10 },
+  timelineDate: { fontSize: 12, color: '#888' },
+  timelineEvent: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+  timelineDesc: { fontSize: 14, color: '#666', marginTop: 2 },
+  footer: { marginTop: 20, padding: 15, backgroundColor: '#e3f2fd', borderRadius: 10 },
+  footerText: { fontSize: 12, color: '#1565c0', textAlign: 'center' }
 });

@@ -1,88 +1,105 @@
 // frontend/app/regulator/SustainabilityMap.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import MapView, { Marker, Callout } from 'react-native-maps';
+import { RegulatorAPI } from '../../services/api';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { RegulatorAPI } from '../../services/api';
 
 export default function SustainabilityMap() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [mapData, setMapData] = useState<any[]>([]);
+  const [zones, setZones] = useState<any[]>([]);
 
   useEffect(() => {
-    loadData();
+    loadMapData();
   }, []);
 
-  const loadData = async () => {
-    setLoading(true);
-    const data = await RegulatorAPI.getMapData();
-    setMapData(Array.isArray(data) ? data : []);
-    setLoading(false);
+  const loadMapData = async () => {
+    try {
+      const data = await RegulatorAPI.getMapData();
+      setZones(Array.isArray(data) ? data : []);
+    } catch (error) {
+      Alert.alert("Error", "Could not fetch map data");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
+      {/* Header Overlay */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Sustainability Tracker 🌍</Text>
+        <Ionicons name="arrow-back" size={28} color="#333" onPress={() => router.back()} />
+        <Text style={styles.title}>Sustainability Monitor 🌍</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.subtitle}>Real-time Crop Stress Analysis</Text>
-
-        {loading ? (
-          <ActivityIndicator size="large" color="#2e7d32" style={{marginTop: 50}} />
-        ) : (
-          <View style={styles.grid}>
-            {mapData.length === 0 ? (
-                <Text style={styles.empty}>No active harvests to analyze.</Text>
-            ) : (
-                mapData.map((point, index) => (
-                <View key={index} style={[styles.card, point.zone_status === 'RED' ? styles.cardRed : styles.cardGreen]}>
-                    <View style={styles.cardHeader}>
-                        <Ionicons 
-                            name={point.zone_status === 'RED' ? "alert-circle" : "checkmark-circle"} 
-                            size={24} 
-                            color={point.zone_status === 'RED' ? "#c62828" : "#2e7d32"} 
-                        />
-                        <Text style={styles.zoneText}>{point.zone_status === 'RED' ? "STRESSED ZONE" : "SAFE ZONE"}</Text>
-                    </View>
-                    
-                    <Text style={styles.crop}>{point.crop}</Text>
-                    <Text style={styles.detail}>Farmer: {point.farmer}</Text>
-                    <Text style={styles.detail}>Lat: {point.lat.toFixed(4)}, Lng: {point.lng.toFixed(4)}</Text>
-                    
-                    <View style={styles.scoreBadge}>
-                        <Text style={styles.scoreText}>Stress Score: {point.stress_score}</Text>
-                    </View>
+      {loading ? (
+        <View style={styles.loader}>
+          <ActivityIndicator size="large" color="#2e7d32" />
+          <Text>Analyzing Satellite Data...</Text>
+        </View>
+      ) : (
+        <MapView 
+          style={styles.map}
+          initialRegion={{
+            latitude: 30.7333, // Default to Punjab/Chandigarh
+            longitude: 76.7794,
+            latitudeDelta: 0.5,
+            longitudeDelta: 0.5,
+          }}
+        >
+          {zones.map((zone, index) => (
+            <Marker
+              key={index}
+              coordinate={{ latitude: zone.lat, longitude: zone.lng }}
+              pinColor={zone.zone_status === 'RED' ? 'red' : 'green'}
+            >
+              <Callout>
+                <View style={styles.callout}>
+                  <Text style={styles.calloutTitle}>{zone.crop}</Text>
+                  <Text>Farmer: {zone.farmer}</Text>
+                  <Text style={{ fontWeight: 'bold', color: zone.zone_status === 'RED' ? 'red' : 'green' }}>
+                    Status: {zone.zone_status}
+                  </Text>
                 </View>
-                ))
-            )}
-          </View>
-        )}
-      </ScrollView>
+              </Callout>
+            </Marker>
+          ))}
+        </MapView>
+      )}
+
+      {/* Legend */}
+      <View style={styles.legend}>
+        <View style={styles.legendItem}>
+          <View style={[styles.dot, { backgroundColor: 'green' }]} />
+          <Text>Safe Harvest</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.dot, { backgroundColor: 'red' }]} />
+          <Text>Over-Farming Detected</Text>
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 20, backgroundColor: '#fff', elevation: 2 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 15, color: '#1b5e20' },
-  content: { padding: 20 },
-  subtitle: { fontSize: 16, color: '#666', marginBottom: 20 },
-  grid: { gap: 15 },
-  empty: { textAlign: 'center', marginTop: 50, color: '#999' },
-  card: { padding: 15, borderRadius: 12, borderWidth: 1, elevation: 1 },
-  cardGreen: { backgroundColor: '#e8f5e9', borderColor: '#c8e6c9' },
-  cardRed: { backgroundColor: '#ffebee', borderColor: '#ffcdd2' },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  zoneText: { fontWeight: 'bold', marginLeft: 8, fontSize: 14, color: '#555' },
-  crop: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 5 },
-  detail: { fontSize: 14, color: '#666', marginBottom: 2 },
-  scoreBadge: { marginTop: 10, alignSelf: 'flex-start', backgroundColor: 'rgba(0,0,0,0.05)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  scoreText: { fontSize: 12, fontWeight: '600', color: '#333' }
+  container: { flex: 1 },
+  map: { flex: 1 },
+  header: { 
+    position: 'absolute', top: 50, left: 20, right: 20, 
+    flexDirection: 'row', alignItems: 'center', 
+    backgroundColor: 'rgba(255,255,255,0.9)', padding: 15, borderRadius: 10, zIndex: 10, elevation: 5 
+  },
+  title: { fontSize: 18, fontWeight: 'bold', marginLeft: 10, color: '#2e7d32' },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  callout: { padding: 5, width: 150 },
+  calloutTitle: { fontWeight: 'bold', fontSize: 16, marginBottom: 5 },
+  legend: {
+    position: 'absolute', bottom: 30, left: 20, 
+    backgroundColor: 'white', padding: 15, borderRadius: 10, elevation: 5
+  },
+  legendItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },
+  dot: { width: 12, height: 12, borderRadius: 6, marginRight: 8 }
 });

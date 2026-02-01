@@ -1,39 +1,62 @@
-# /backend/routes/surplus.py
+# backend/routes/surplus.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from database import get_db
-from models import BatchEvent, Batch, User
-from schemas import SurplusCreate, SurplusOut
+import models
+import datetime
 
-from utils.blockchain_utils import mint_tokens
+router = APIRouter(prefix="/surplus", tags=["Surplus & NGO"])
 
-router = APIRouter(prefix="/surplus", tags=["surplus"])
+# 1. List Available Donations (For NGOs)
+@router.get("/available")
+def get_available_donations(db: Session = Depends(get_db)):
+    """
+    Shows batches that farmers have marked for donation.
+    """
+    return db.query(models.Batch).filter(models.Batch.status == "DONATION_READY").all()
 
-
-@router.post("/redistribute", response_model=SurplusOut)
-def redistribute_surplus(payload: SurplusCreate, db: Session = Depends(get_db)):
-    batch = db.get(FoodBatch, payload.batch_id)
+# 2. Farmer Donates a Batch
+@router.post("/donate/{batch_id}")
+def donate_batch(batch_id: str, db: Session = Depends(get_db)):
+    """
+    Farmer marks a batch as 'Surplus/Donation'. 
+    This triggers an 'Impact Token' reward.
+    """
+    batch = db.query(models.Batch).filter(models.Batch.batch_id == batch_id).first()
     if not batch:
         raise HTTPException(status_code=404, detail="Batch not found")
 
-    if batch.status == "distributed":
-        raise HTTPException(status_code=400, detail="Batch already distributed")
-
-    surplus = Surplus(batch_id=batch.id, ngo_name=payload.ngo_name)
-    batch.status = "distributed"
-
-    farmer = db.get(Farmer, batch.farmer_id)
-    if farmer:
-        mint_tokens(farmer.wallet_address, 10)
-        farmer.tokens += 10
-        db.add(farmer)
-
-    db.add(batch)
-    db.add(surplus)
+    # Update Status
+    batch.status = "DONATION_READY"
+    
+    # REWARD LOGIC: Give Farmer Impact Tokens
+    # (In real life, this calls the Blockchain Contract)
+    if batch.owner:
+        batch.owner.impact_tokens += 50 
+        
     db.commit()
-    db.refresh(surplus)
-    return surplus
+    return {"message": "Batch marked for donation", "impact_tokens_earned": 50}
 
+# 3. NGO Claims a Batch
+@router.post("/claim/{batch_id}")
+def claim_donation(batch_id: str, ngo_id: int, db: Session = Depends(get_db)):
+    """
+    NGO claims the food.
+    """
+    batch = db.query(models.Batch).filter(models.Batch.batch_id == batch_id).first()
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
 
-
+    batch.status = "DISTRIBUTED"
+    
+    # Log the event
+    new_event = models.BatchEvent(
+        batch_id=batch.id,
+        event_type="DONATION",
+        description=f"Claimed by NGO #{ngo_id}",
+        timestamp=datetime.datetime.utcnow()
+    )
+    db.add(new_event)
+    db.commit()
+    
+    return {"message": "Donation claimed successfully"}
