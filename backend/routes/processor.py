@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import FoodBatch, Farmer, LabTest
+from models import Batch, User, LabReport
 from schemas import LabTestCreate, BatchStatusUpdate
 from utils.blockchain_utils import register_batch_onchain
 

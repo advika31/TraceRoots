@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from utils.blockchain_utils import verify_batch_onchain
 from sqlalchemy.orm import Session
 from database import get_db
-from models import FoodBatch, Farmer
+from models import User, Batch
 
 router = APIRouter(prefix="/blockchain", tags=["blockchain"])
 

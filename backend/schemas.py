@@ -1,129 +1,126 @@
 # backend/schemas.py
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional, Any
 from datetime import datetime
+from models import BatchStatus, UserRole
 
-class FarmerCreate(BaseModel):
-    name: str
-    location: str
-    farm_size: float
-    wallet_address: str
+# --- Auth & User Schemas ---
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user_id: int
+    role: str
 
+class TokenData(BaseModel):
+    username: Optional[str] = None
 
-class FarmerOut(BaseModel):
+class UserBase(BaseModel):
+    username: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    role: UserRole = UserRole.COLLECTOR
+    location: Optional[str] = None
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+    
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
     id: int
-    name: str
-    location: str
-    farm_size: float
-    wallet_address: str
-    tokens: int
+    reputation_score: int
+    impact_tokens: int
 
     class Config:
         from_attributes = True
 
+# --- Timeline & Events ---
+class BatchEventBase(BaseModel):
+    event_type: str
+    description: str
+    location: Optional[str] = None
 
-class FoodBatchCreate(BaseModel):
+class BatchEventCreate(BatchEventBase):
+    pass
+
+class BatchEvent(BatchEventBase):
+    id: int
+    timestamp: datetime
+    batch_id: int
+
+    class Config:
+        from_attributes = True
+
+# --- Lab Reports ---
+class LabReportBase(BaseModel):
+    result_summary: str
+    report_file_url: str
+
+class LabReportCreate(LabReportBase):
+    pass
+
+class LabReport(LabReportBase):
+    id: int
+    test_date: datetime
+    processor_id: int
+
+    class Config:
+        from_attributes = True
+
+# --- Feedback ---
+class FeedbackBase(BaseModel):
+    rating: int
+    comment: Optional[str] = None
+
+class FeedbackCreate(FeedbackBase):
+    pass
+
+class Feedback(FeedbackBase):
+    id: int
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+
+# --- Batch (The Core Object) ---
+class BatchBase(BaseModel):
+    crop_name: str
+    quantity: float
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    region: Optional[str] = None
+
+class BatchCreate(BatchBase):
+    pass
+
+class BatchUpdate(BaseModel):
+    status: Optional[BatchStatus] = None
+    blockchain_tx_hash: Optional[str] = None
+    is_verified_on_chain: Optional[bool] = None
+    ai_quality_score: Optional[float] = None
+    ai_freshness_grade: Optional[str] = None
+    video_story_url: Optional[str] = None
+
+class Batch(BatchBase):
+    id: int
+    batch_id: str
     farmer_id: int
-    crop_type: str
-    quantity_kg: float
+    harvest_date: datetime
+    status: BatchStatus
+    
+    blockchain_tx_hash: Optional[str] = None
+    is_verified_on_chain: bool
+    ai_quality_score: Optional[float] = None
+    ai_freshness_grade: Optional[str] = None
+    video_story_url: Optional[str] = None
 
-
-class FoodBatchOut(BaseModel):
-    id: int
-    farmer_id: int
-    crop_type: str
-    quantity_kg: float
-    nutrition_score: Optional[float] = None
-    blockchain_tx: Optional[str] = None
-    qr_path: Optional[str] = None
-    status: str
-
-    class Config:
-        from_attributes = True
-
-
-class SurplusCreate(BaseModel):
-    batch_id: int
-    ngo_name: str
-
-
-class SurplusOut(BaseModel):
-    id: int
-    batch_id: int
-    ngo_name: str
-    class Config:
-        from_attributes = True
-
-
-class TraceOut(BaseModel):
-    batch_id: int
-    farmer_name: str
-    crop_type: str
-    quantity_kg: float
-    nutrition_score: Optional[float]
-    blockchain_tx: Optional[str]
-    status: str
-    qr_url: Optional[str]
-
-
-class TokenBalance(BaseModel):
-    farmer_id: int
-    tokens: int
-
-
-class AnalyticsSummary(BaseModel):
-    total_farmers: int
-    total_batches: int
-    total_distributed: int
-    total_tokens: int
-
-class FarmerLogin(BaseModel):
-    wallet_address: str
-
-class ProcessorCreate(BaseModel):
-    name: str
-    organization: str | None = None
-    location: str | None = None
-
-
-class ProcessorOut(BaseModel):
-    id: int
-    name: str
-    organization: str | None
-    location: str | None
-
-    class Config:
-        from_attributes = True
-
-class LabTestCreate(BaseModel):
-    batch_id: int
-    purity_percent: float
-    heavy_metals_safe: str
-    pesticides_safe: str
-    remarks: str | None = None
-
-
-class LabTestOut(BaseModel):
-    id: int
-    batch_id: int
-    purity_percent: float
-    heavy_metals_safe: str
-    pesticides_safe: str
-    remarks: str | None
-    tested_at: datetime
-
-    class Config:
-        from_attributes = True
-
-class BatchStatusUpdate(BaseModel):
-    batch_id: int
-    new_status: str  # processed | approved
-
-class RegulatorOut(BaseModel):
-    id: int
-    name: str
-    department: str | None
-    region: str | None
+    # Nested Relationships
+    owner: Optional[User] = None
+    timeline_events: List[BatchEvent] = []
+    lab_report: Optional[LabReport] = None
+    feedbacks: List[Feedback] = []
 
     class Config:
         from_attributes = True

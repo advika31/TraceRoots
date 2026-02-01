@@ -1,82 +1,106 @@
 #   backend/models.py
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, DateTime, Text, Enum
 from sqlalchemy.orm import relationship
-from datetime import datetime
-
 from database import Base
+import datetime
+import enum
 
+class BatchStatus(str, enum.Enum):
+    HARVESTED = "HARVESTED"
+    AT_PROCESSOR = "AT_PROCESSOR"
+    LAB_TESTED = "LAB_TESTED"
+    IN_TRANSIT = "IN_TRANSIT"
+    SOLD = "SOLD"
 
-class Farmer(Base):
-    __tablename__ = "farmers"
+class UserRole(str, enum.Enum):
+    COLLECTOR = "COLLECTOR"
+    PROCESSOR = "PROCESSOR"
+    REGULATOR = "REGULATOR"
+    CONSUMER = "CONSUMER"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    location = Column(String, nullable=False)
-    farm_size = Column(Float, nullable=False)
-    wallet_address = Column(String, nullable=False)
-    tokens = Column(Integer, default=0)
-
-    batches = relationship("FoodBatch", back_populates="farmer")
-
-
-class FoodBatch(Base):
-    __tablename__ = "food_batches"
-
-    id = Column(Integer, primary_key=True, index=True)
-    farmer_id = Column(Integer, ForeignKey("farmers.id"), nullable=False)
-    crop_type = Column(String, nullable=False)
-    quantity_kg = Column(Float, nullable=False)
-    nutrition_score = Column(Float, nullable=True)
-    blockchain_tx = Column(String, nullable=True)
-    qr_path = Column(String, nullable=True)
-    status = Column(String, default="pending")  # pending | processed | approved | distributed
-    lab_test = relationship(
-        "LabTest",
-        uselist=False,
-        back_populates="batch"
-    )
-
-    farmer = relationship("Farmer", back_populates="batches")
-    surplus = relationship("Surplus", back_populates="batch", uselist=False)
-
-
-class Surplus(Base):
-    __tablename__ = "surpluses"
+class User(Base):
+    __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    batch_id = Column(Integer, ForeignKey("food_batches.id"), nullable=False, unique=True)
-    ngo_name = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    role = Column(String, default=UserRole.COLLECTOR)
+    
+    full_name = Column(String, nullable=True)
+    location = Column(String, nullable=True)
+    
+    reputation_score = Column(Integer, default=100)
+    impact_tokens = Column(Integer, default=0)
 
-    batch = relationship("FoodBatch", back_populates="surplus")
+    batches = relationship("Batch", back_populates="owner")
+    lab_reports = relationship("LabReport", back_populates="processor")
 
-class Processor(Base):
-    __tablename__ = "processors"
+class Batch(Base):
+    __tablename__ = "batches"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    organization = Column(String, nullable=True)
+    batch_id = Column(String, unique=True, index=True) 
+    
+    farmer_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="batches")
+
+    crop_name = Column(String, index=True)
+    quantity = Column(Float)
+    harvest_date = Column(DateTime, default=datetime.datetime.utcnow)
+    status = Column(String, default=BatchStatus.HARVESTED)
+    
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    region = Column(String, nullable=True) 
+
+    blockchain_tx_hash = Column(String, nullable=True) 
+    is_verified_on_chain = Column(Boolean, default=False)
+    
+    ai_quality_score = Column(Float, nullable=True) 
+    ai_freshness_grade = Column(String, nullable=True) 
+    
+    video_story_url = Column(String, nullable=True)
+
+    timeline_events = relationship("BatchEvent", back_populates="batch")
+    lab_report = relationship("LabReport", back_populates="batch", uselist=False)
+    feedbacks = relationship("ConsumerFeedback", back_populates="batch")
+
+class BatchEvent(Base):
+    __tablename__ = "batch_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    batch_id = Column(Integer, ForeignKey("batches.id"))
+    
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+    event_type = Column(String) 
+    description = Column(String)
     location = Column(String, nullable=True)
 
-class LabTest(Base):
-    __tablename__ = "lab_tests"
+    batch = relationship("Batch", back_populates="timeline_events")
+
+class LabReport(Base):
+    __tablename__ = "lab_reports"
 
     id = Column(Integer, primary_key=True, index=True)
-    batch_id = Column(Integer, ForeignKey("food_batches.id"), unique=True, nullable=False)
-
-    purity_percent = Column(Float, nullable=False)
-    heavy_metals_safe = Column(String, nullable=False)  # yes / no
-    pesticides_safe = Column(String, nullable=False)    # yes / no
-    remarks = Column(String, nullable=True)
-
-    tested_at = Column(DateTime, default=datetime.utcnow)
-
-    batch = relationship("FoodBatch", back_populates="lab_test")
+    batch_id = Column(Integer, ForeignKey("batches.id"))
+    processor_id = Column(Integer, ForeignKey("users.id"))
     
-class Regulator(Base):
-    __tablename__ = "regulators"
+    test_date = Column(DateTime, default=datetime.datetime.utcnow)
+    report_file_url = Column(String) 
+    result_summary = Column(String)
+    
+    batch = relationship("Batch", back_populates="lab_report")
+    processor = relationship("User", back_populates="lab_reports")
+
+class ConsumerFeedback(Base):
+    __tablename__ = "consumer_feedback"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    department = Column(String, nullable=True)
-    region = Column(String, nullable=True)
+    batch_id = Column(Integer, ForeignKey("batches.id"))
+    
+    rating = Column(Integer) 
+    comment = Column(Text, nullable=True)
+    timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+
+    batch = relationship("Batch", back_populates="feedbacks")
