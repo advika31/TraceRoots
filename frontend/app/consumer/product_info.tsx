@@ -1,213 +1,101 @@
-// app/consumer/product_info.tsx
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import type { ComponentProps } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import React, { useEffect, useState } from "react";
-import API from "@/services/api";
+// frontend/app/consumer/product_info.tsx
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { ConsumerAPI } from '../../services/api';
 
-type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
-
-interface JourneyStep {
-  icon: IconName;
-  title: string;
-  desc: string;
-  date: string;
-  location: string;
-}
-
-export default function ProductInfoScreen() {
-  const router = useRouter();
-  const { batchId } = useLocalSearchParams<{ batchId: string }>();
-  const [journeySteps, setJourneySteps] = useState<any[]>([]);
+export default function ProductInfo() {
+  const { batchId } = useLocalSearchParams();
   const [loading, setLoading] = useState(true);
-  const [onChain, setOnChain] = useState<boolean | null>(null);
-  const [cropType, setCropType] = useState<string | null>(null);
+  const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const traceRes = await API.get(`/consumer/trace/${batchId}`);
-        // setJourneySteps(traceRes.data.journey);
-        setJourneySteps([
-          {
-            icon: "sprout",
-            title: "Harvested",
-            desc: `Harvested by ${traceRes.data.farmer_name}`,
-            date: traceRes.data.harvest_date || "N/A",
-            location: traceRes.data.farmer_location || "Unknown",
-          },
-          {
-            icon: "truck",
-            title: "Transported",
-            desc: "Cold-chain transport maintained",
-            date: "12 Jan 2025",
-            location: "Dehradun",
-          },
-          {
-            icon: "package-variant",
-            title: "Packaged",
-            desc: "Packaged under safety norms",
-            date: "14 Jan 2025",
-            location: "Haridwar",
-          },
-        ]);
-
-        setCropType(traceRes.data.crop_type);
-
-        const bcRes = await API.get(`/regulator/verify/${batchId}`);
-        setOnChain(bcRes.data.on_chain_verified);
-      } catch (e) {
-        console.log("Trace / Blockchain fetch failed", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (batchId) fetchData();
+    if (batchId) fetchData(batchId as string);
   }, [batchId]);
 
-  if (!batchId) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Invalid or missing batch ID</Text>
-      </View>
-    );
-  }
+  const fetchData = async (id: string) => {
+    const result = await ConsumerAPI.getStory(id);
+    if (result) {
+      setData(result);
+    } else {
+      Alert.alert("Error", "Product not found");
+    }
+    setLoading(false);
+  };
+
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#2e7d32"/></View>;
+  if (!data) return <View style={styles.center}><Text>Product Not Found</Text></View>;
+
+  const { batch_details, story_narrative, verification } = data;
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-    >
-      <Text style={styles.title}>🌿 Product Information</Text>
-
-      {loading ? (
-        <Text style={{ textAlign: "center", marginTop: 20 }}>
-          Loading product journey...
-        </Text>
-      ) : (
-        <>
-          {/* Journey Timeline */}
-          <View style={styles.card}>
-            <Text style={styles.label}>Journey</Text>
-
-            {journeySteps.map((step, index) => (
-              <View key={index} style={styles.timelineItem}>
-                <View style={styles.iconColumn}>
-                  <MaterialCommunityIcons
-                    name={step.icon}
-                    size={28}
-                    color="#15803d"
-                  />
-                  {index < journeySteps.length - 1 && (
-                    <View style={styles.verticalLine} />
-                  )}
-                </View>
-
-                <View style={styles.details}>
-                  <Text style={styles.stepTitle}>{step.title}</Text>
-                  <Text style={styles.stepDesc}>{step.desc}</Text>
-                  <Text style={styles.stepMeta}>📅 {step.date}</Text>
-                  <Text style={styles.stepMeta}>📍 {step.location}</Text>
-                </View>
-              </View>
-            ))}
+    <ScrollView style={styles.container}>
+      {/* Hero Image */}
+      <Image source={{ uri: `http://192.168.1.9:8000${batch_details.video_story_url}` }} style={styles.image} />
+      
+      <View style={styles.content}>
+        {/* Title & Badge */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>{batch_details.crop_name}</Text>
+            <Text style={styles.subtitle}>Harvested {new Date(batch_details.harvest_date).toLocaleDateString()}</Text>
           </View>
-        </>
-      )}
+          <Ionicons name="shield-checkmark" size={40} color="#2e7d32" />
+        </View>
 
-      {/* Origin */}
-      <View style={styles.card}>
-        <Text style={styles.label}>Origin</Text>
-        <Text style={styles.value}>🌄 Badrinath Valley, India</Text>
+        {/* The AI Story */}
+        <View style={styles.storyBox}>
+          <Text style={styles.storyTitle}>🌱 The Journey</Text>
+          <Text style={styles.storyText}>{story_narrative}</Text>
+        </View>
+
+        {/* Timeline */}
+        <Text style={styles.sectionHeader}>Traceability Timeline</Text>
+        {data.timeline.map((event: any, i: number) => (
+          <View key={i} style={styles.timelineItem}>
+            <View style={styles.timelineLine} />
+            <View style={styles.timelineIcon}>
+              <Ionicons name={event.icon} size={20} color="#fff" />
+            </View>
+            <View style={styles.timelineContent}>
+              <Text style={styles.eventTitle}>{event.event}</Text>
+              <Text style={styles.eventDate}>{event.date}</Text>
+            </View>
+          </View>
+        ))}
+
+        {/* Blockchain Verification */}
+        <View style={styles.verifyBox}>
+          <Text style={styles.verifyTitle}>Blockchain Verified</Text>
+          <Text style={styles.hash}>Hash: {verification.blockchain_hash}</Text>
+          <Text style={styles.status}>Immutable • Transparent • Trusted</Text>
+        </View>
       </View>
-
-      {/* Lab Results */}
-      <View style={styles.card}>
-        <Text style={styles.label}>Lab Results</Text>
-        <Text style={styles.value}>
-          ✅ 98% Purity{"\n"}✅ Heavy Metals: Safe{"\n"}✅ Pesticides: None
-          Detected
-        </Text>
-      </View>
-
-      {/* Authenticity Badge */}
-
-      <View style={[styles.card, styles.badge]}>
-        <Text style={styles.label}>Blockchain Proof</Text>
-
-        {onChain === true && (
-          <Text style={styles.value}>✅ Verified on Blockchain</Text>
-        )}
-
-        {onChain === false && <Text style={styles.value}>❌ Not Verified</Text>}
-
-        {onChain === null && (
-          <Text style={styles.value}>⏳ Checking verification...</Text>
-        )}
-      </View>
-
-      {/* Feedback Form Button */}
-      <TouchableOpacity
-        style={styles.feedbackButton}
-        onPress={() => router.push("/consumer/feedback")}
-      >
-        <Text style={styles.feedbackButtonText}>📝 Give Feedback</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f0fdf4" },
-  scrollContent: { padding: 20, paddingBottom: 40 },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#166534",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 15,
-    marginVertical: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  label: { fontSize: 20, fontWeight: "bold", color: "#333", marginBottom: 10 },
-  value: { fontSize: 16, color: "#555", lineHeight: 22 },
-
-  // Timeline
-  timelineItem: { flexDirection: "row", marginBottom: 20 },
-  iconColumn: { alignItems: "center", marginRight: 15 },
-  verticalLine: { width: 2, flex: 1, backgroundColor: "#16a34a", marginTop: 5 },
-  details: { flex: 1 },
-  stepTitle: { fontSize: 18, fontWeight: "bold", color: "#166534" },
-  stepDesc: { fontSize: 15, color: "#444", marginBottom: 4 },
-  stepMeta: { fontSize: 13, color: "#666" },
-
-  // Badge
-  badge: { backgroundColor: "#dcfce7", borderColor: "#16a34a", borderWidth: 1 },
-
-  // Feedback button
-  feedbackButton: {
-    backgroundColor: "#16a34a",
-    paddingVertical: 18,
-    paddingHorizontal: 25,
-    borderRadius: 12,
-    marginTop: 20,
-    alignItems: "center",
-  },
-  feedbackButtonText: { fontSize: 18, color: "#fff", fontWeight: "bold" },
+  container: { flex: 1, backgroundColor: '#fff' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  image: { width: '100%', height: 250, backgroundColor: '#eee' },
+  content: { padding: 20,  borderTopLeftRadius: 25, borderTopRightRadius: 25, marginTop: -20, backgroundColor: '#fff' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#1b5e20' },
+  subtitle: { color: '#666', fontSize: 14 },
+  storyBox: { backgroundColor: '#f1f8e9', padding: 20, borderRadius: 15, marginBottom: 25 },
+  storyTitle: { fontWeight: 'bold', color: '#33691e', marginBottom: 10, fontSize: 16 },
+  storyText: { lineHeight: 24, color: '#333', fontSize: 15 },
+  sectionHeader: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' },
+  timelineItem: { flexDirection: 'row', marginBottom: 20, position: 'relative' },
+  timelineLine: { position: 'absolute', left: 20, top: 0, bottom: -20, width: 2, backgroundColor: '#ddd', zIndex: -1 },
+  timelineIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#2e7d32', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  timelineContent: { justifyContent: 'center' },
+  eventTitle: { fontWeight: 'bold', fontSize: 16, color: '#333' },
+  eventDate: { color: '#888', fontSize: 12 },
+  verifyBox: { marginTop: 20, padding: 15, backgroundColor: '#212121', borderRadius: 10, alignItems: 'center' },
+  verifyTitle: { color: '#4caf50', fontWeight: 'bold', fontSize: 16, marginBottom: 5 },
+  hash: { color: '#757575', fontSize: 10, marginBottom: 5 },
+  status: { color: '#aaa', fontSize: 12 }
 });
