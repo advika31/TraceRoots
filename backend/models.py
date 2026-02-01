@@ -11,6 +11,8 @@ class BatchStatus(str, enum.Enum):
     LAB_TESTED = "LAB_TESTED"
     IN_TRANSIT = "IN_TRANSIT"
     SOLD = "SOLD"
+    DONATION_READY = "DONATION_READY"
+    DISTRIBUTED = "DISTRIBUTED"
 
 class UserRole(str, enum.Enum):
     COLLECTOR = "COLLECTOR"

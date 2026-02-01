@@ -1,130 +1,106 @@
-// frontend/app/processor/upload-lab-test.tsx
-import { useState } from "react";
-import {
-  Alert,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { useRouter } from "expo-router";
-import API from "@/services/api";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import { ProcessorAPI } from '../../services/api';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function UploadLabTest() {
   const router = useRouter();
+  const { batchId } = useLocalSearchParams();
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState('');
+  const [image, setImage] = useState<string | null>(null);
 
-  const [batchId, setBatchId] = useState("");
-  const [purity, setPurity] = useState("");
-  const [heavyMetalsSafe, setHeavyMetalsSafe] = useState("");
-  const [pesticidesSafe, setPesticidesSafe] = useState("");
-  const [remarks, setRemarks] = useState("");
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.5,
+    });
 
-  const submitLabTest = async () => {
-    if (!batchId || !purity || !heavyMetalsSafe || !pesticidesSafe) {
-      Alert.alert("All required fields must be filled");
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!result || !image) {
+      Alert.alert("Missing Info", "Please enter result summary and attach report image.");
       return;
     }
 
+    setLoading(true);
     try {
-      await API.post("/processor/lab-test", {
-        batch_id: Number(batchId),
-        purity_percent: Number(purity),
-        heavy_metals_safe: heavyMetalsSafe,
-        pesticides_safe: pesticidesSafe,
-        remarks,
-      });
+      const formData = new FormData();
+      formData.append('result_summary', result);
+      formData.append('processor_id', '101'); // Mock ID
+      
+      const filename = image.split('/').pop() || "report.jpg";
+      // @ts-ignore
+      formData.append('file', { uri: image, name: filename, type: 'image/jpeg' });
 
-      Alert.alert("Success", "Lab test uploaded successfully");
-      router.back();
-    } catch (e: any) {
-      Alert.alert(
-        "Error",
-        e?.response?.data?.detail || "Failed to upload lab test"
-      );
+      await ProcessorAPI.uploadReport(batchId as string, formData);
+      
+      Alert.alert("Success", "Batch Certified & Status Updated!");
+      router.replace('/processor/processor_dashboard');
+
+    } catch (e) {
+      Alert.alert("Error", "Upload failed. Check server connection.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Upload Lab Test</Text>
+      <Text style={styles.title}>Certify Batch #{batchId}</Text>
+      <Text style={styles.subtitle}>Attach Quality Control Report</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Batch ID"
-        keyboardType="numeric"
-        value={batchId}
-        onChangeText={setBatchId}
+      {/* Result Input */}
+      <Text style={styles.label}>Result Summary</Text>
+      <TextInput 
+        style={styles.input} 
+        placeholder="e.g. Grade A - Organic Certified" 
+        value={result}
+        onChangeText={setResult}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Purity (%)"
-        keyboardType="numeric"
-        value={purity}
-        onChangeText={setPurity}
-      />
+      {/* Image Upload */}
+      <Text style={styles.label}>Attach Report Image</Text>
+      <TouchableOpacity style={styles.uploadBox} onPress={pickImage}>
+        {image ? (
+          <Image source={{ uri: image }} style={styles.image} />
+        ) : (
+          <View style={styles.placeholder}>
+            <Ionicons name="cloud-upload-outline" size={40} color="#666" />
+            <Text style={{color: '#666', marginTop: 10}}>Tap to Select File</Text>
+          </View>
+        )}
+      </TouchableOpacity>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Heavy Metals Safe? (yes/no)"
-        value={heavyMetalsSafe}
-        onChangeText={setHeavyMetalsSafe}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Pesticides Safe? (yes/no)"
-        value={pesticidesSafe}
-        onChangeText={setPesticidesSafe}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Remarks (optional)"
-        value={remarks}
-        onChangeText={setRemarks}
-      />
-
-      <TouchableOpacity style={styles.button} onPress={submitLabTest}>
-        <Text style={styles.buttonText}>Submit Lab Test</Text>
+      {/* Submit */}
+      <TouchableOpacity 
+        style={[styles.btn, loading && styles.disabledBtn]} 
+        onPress={handleSubmit}
+        disabled={loading}
+      >
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Submit Certification</Text>}
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f0fdf4",
-    padding: 20,
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#15803d",
-    textAlign: "center",
-    marginBottom: 25,
-  },
-  input: {
-    backgroundColor: "#fff",
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    marginBottom: 14,
-  },
-  button: {
-    backgroundColor: "#15803d",
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
+  container: { flex: 1, padding: 25, backgroundColor: '#fff' },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#333', marginTop: 20 },
+  subtitle: { fontSize: 16, color: '#666', marginBottom: 30 },
+  label: { fontSize: 16, fontWeight: '600', marginBottom: 10, color: '#333' },
+  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10, padding: 15, fontSize: 16, marginBottom: 25 },
+  uploadBox: { height: 200, borderWidth: 2, borderColor: '#ddd', borderStyle: 'dashed', borderRadius: 15, overflow: 'hidden', marginBottom: 30 },
+  placeholder: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fafafa' },
+  image: { width: '100%', height: '100%' },
+  btn: { backgroundColor: '#2e7d32', padding: 18, borderRadius: 12, alignItems: 'center' },
+  disabledBtn: { backgroundColor: '#a5d6a7' },
+  btnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' }
 });

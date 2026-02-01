@@ -50,8 +50,10 @@ export const AuthAPI = {
 
 export const CollectorAPI = {
   getStats: async (userId: number) => {
-    const res = await api.get(`/farmers/${userId}/stats`);
-    return res.data;
+    try {
+      const res = await api.get(`/farmers/${userId}/stats`);
+      return res.data;
+    } catch (e) { return { batches: 0, tokens: 0, zone: "Offline" }; }
   },
   uploadBatch: async (formData: FormData) => {
     const response = await api.post('/batches/create', formData, {
@@ -81,21 +83,10 @@ export const RegulatorAPI = {
 
 // --- 3. PROCESSOR (Lab) ---
 export const ProcessorAPI = {
-  uploadReport: async (batchId: string, processorId: number, result: string, fileUri: string) => {
-    const formData = new FormData();
-    formData.append('result_summary', result);
-    formData.append('processor_id', processorId.toString());
-    
-    const filename = fileUri.split('/').pop() || "report.jpg";
-    // @ts-ignore
-    formData.append('file', {
-      uri: fileUri,
-      name: filename,
-      type: 'image/jpeg',
-    });
-
+  getBatch: async (batchId: string) => (await api.get(`/batches/${batchId}`)).data,
+  uploadReport: async (batchId: string, formData: FormData) => {
     return (await api.post(`/processor/lab-report/${batchId}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': 'multipart/form-data' },
     })).data;
   }
 };
@@ -111,6 +102,13 @@ export const ConsumerAPI = {
       return null;
     }
   }
+};
+
+// Surplus/NGO Actions
+export const SurplusAPI = {
+  getAvailable: async () => (await api.get('/surplus/available')).data,
+  donateBatch: async (batchId: string) => (await api.post(`/surplus/donate/${batchId}`)).data,
+  claimBatch: async (batchId: string, ngoId: number) => (await api.post(`/surplus/claim/${batchId}?ngo_id=${ngoId}`)).data,
 };
 
 export default api;
