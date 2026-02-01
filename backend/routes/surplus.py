@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Surplus, FoodBatch, Farmer
+from models import BatchEvent, Batch, User
 from schemas import SurplusCreate, SurplusOut
 
 from utils.blockchain_utils import mint_tokens

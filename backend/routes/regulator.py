@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import FoodBatch, Farmer, LabTest
+from models import Batch, User, LabReport
 from utils.blockchain_utils import verify_batch_onchain
 
 router = APIRouter(prefix="/regulator", tags=["regulator"])
