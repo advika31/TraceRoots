@@ -1,104 +1,88 @@
-// app/regulator/SustainabilityMap.tsx
-import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import MapView, { Marker, Polygon, Region } from "react-native-maps";
+// frontend/app/regulator/SustainabilityMap.tsx
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { RegulatorAPI } from '../../services/api';
 
 export default function SustainabilityMap() {
-  const [region, setRegion] = useState<Region>({
-    latitude: 28.6139, // Default: New Delhi
-    longitude: 77.209,
-    latitudeDelta: 0.2,
-    longitudeDelta: 0.2,
-  });
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [mapData, setMapData] = useState<any[]>([]);
 
-  // Example zones (Green, Yellow, Red)
-  const zones = [
-    {
-      name: "Sustainable Zone",
-      color: "rgba(34,197,94,0.3)", // green
-      coords: [
-        { latitude: 28.65, longitude: 77.15 },
-        { latitude: 28.65, longitude: 77.25 },
-        { latitude: 28.55, longitude: 77.25 },
-        { latitude: 28.55, longitude: 77.15 },
-      ],
-    },
-    {
-      name: "Moderate Zone",
-      color: "rgba(250,204,21,0.3)", // yellow
-      coords: [
-        { latitude: 28.70, longitude: 77.20 },
-        { latitude: 28.70, longitude: 77.30 },
-        { latitude: 28.60, longitude: 77.30 },
-        { latitude: 28.60, longitude: 77.20 },
-      ],
-    },
-    {
-      name: "Restricted Zone",
-      color: "rgba(209, 13, 13, 0.3)", // red
-      coords: [
-        { latitude: 28.55, longitude: 77.18 },
-        { latitude: 28.55, longitude: 77.28 },
-        { latitude: 28.45, longitude: 77.28 },
-        { latitude: 28.45, longitude: 77.18 },
-      ],
-    },
-  ];
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    const data = await RegulatorAPI.getMapData();
+    setMapData(Array.isArray(data) ? data : []);
+    setLoading(false);
+  };
 
   return (
     <View style={styles.container}>
-      <MapView style={styles.map} region={region}>
-        {/* Zones */}
-        {zones.map((zone, index) => (
-          <Polygon
-            key={index}
-            coordinates={zone.coords}
-            fillColor={zone.color}
-            strokeColor={zone.color}
-          />
-        ))}
-
-        {/* Marker for user location */}
-        <Marker
-          coordinate={{ latitude: region.latitude, longitude: region.longitude }}
-          title="You are here"
-          description="Current Location"
-        />
-      </MapView>
-
-      {/* Legend */}
-      <View style={styles.legend}>
-        <Text style={styles.legendTitle}>Zone Meaning:</Text>
-        <Text>🟢 Sustainable Zone</Text>
-        <Text>🟡 Moderate Zone</Text>
-        <Text>🔴 Restricted Zone</Text>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Sustainability Tracker 🌍</Text>
       </View>
+
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.subtitle}>Real-time Crop Stress Analysis</Text>
+
+        {loading ? (
+          <ActivityIndicator size="large" color="#2e7d32" style={{marginTop: 50}} />
+        ) : (
+          <View style={styles.grid}>
+            {mapData.length === 0 ? (
+                <Text style={styles.empty}>No active harvests to analyze.</Text>
+            ) : (
+                mapData.map((point, index) => (
+                <View key={index} style={[styles.card, point.zone_status === 'RED' ? styles.cardRed : styles.cardGreen]}>
+                    <View style={styles.cardHeader}>
+                        <Ionicons 
+                            name={point.zone_status === 'RED' ? "alert-circle" : "checkmark-circle"} 
+                            size={24} 
+                            color={point.zone_status === 'RED' ? "#c62828" : "#2e7d32"} 
+                        />
+                        <Text style={styles.zoneText}>{point.zone_status === 'RED' ? "STRESSED ZONE" : "SAFE ZONE"}</Text>
+                    </View>
+                    
+                    <Text style={styles.crop}>{point.crop}</Text>
+                    <Text style={styles.detail}>Farmer: {point.farmer}</Text>
+                    <Text style={styles.detail}>Lat: {point.lat.toFixed(4)}, Lng: {point.lng.toFixed(4)}</Text>
+                    
+                    <View style={styles.scoreBadge}>
+                        <Text style={styles.scoreText}>Stress Score: {point.stress_score}</Text>
+                    </View>
+                </View>
+                ))
+            )}
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
-  legend: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    backgroundColor: "white",
-    padding: 12,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  legendTitle: {
-    fontWeight: "bold",
-    marginBottom: 5,
-    color: "#166534",
-  },
+  container: { flex: 1, backgroundColor: '#f8f9fa' },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 20, backgroundColor: '#fff', elevation: 2 },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', marginLeft: 15, color: '#1b5e20' },
+  content: { padding: 20 },
+  subtitle: { fontSize: 16, color: '#666', marginBottom: 20 },
+  grid: { gap: 15 },
+  empty: { textAlign: 'center', marginTop: 50, color: '#999' },
+  card: { padding: 15, borderRadius: 12, borderWidth: 1, elevation: 1 },
+  cardGreen: { backgroundColor: '#e8f5e9', borderColor: '#c8e6c9' },
+  cardRed: { backgroundColor: '#ffebee', borderColor: '#ffcdd2' },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  zoneText: { fontWeight: 'bold', marginLeft: 8, fontSize: 14, color: '#555' },
+  crop: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 5 },
+  detail: { fontSize: 14, color: '#666', marginBottom: 2 },
+  scoreBadge: { marginTop: 10, alignSelf: 'flex-start', backgroundColor: 'rgba(0,0,0,0.05)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  scoreText: { fontSize: 12, fontWeight: '600', color: '#333' }
 });

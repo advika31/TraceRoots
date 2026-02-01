@@ -1,3 +1,4 @@
+// frontend/services/api.ts
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -35,7 +36,7 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
+// --- 1. AUTH & FARMER ---
 export const AuthAPI = {
   signup: async (userData: any) => {
     const response = await api.post('/farmers/signup', userData);
@@ -61,6 +62,54 @@ export const CollectorAPI = {
   getHistory: async (userId: number) => {
     const res = await api.get(`/batches/farmer/${userId}`);
     return res.data;
+  }
+};
+
+// --- 2. REGULATOR (Government) ---
+export const RegulatorAPI = {
+  getMapData: async () => {
+    try {
+      const res = await api.get('/regulator/map-data');
+      return res.data;
+    } catch (e) {
+      console.error("Map Fetch Error", e);
+      return [];
+    }
+  },
+  getAlerts: async () => (await api.get('/regulator/alerts')).data,
+};
+
+// --- 3. PROCESSOR (Lab) ---
+export const ProcessorAPI = {
+  uploadReport: async (batchId: string, processorId: number, result: string, fileUri: string) => {
+    const formData = new FormData();
+    formData.append('result_summary', result);
+    formData.append('processor_id', processorId.toString());
+    
+    const filename = fileUri.split('/').pop() || "report.jpg";
+    // @ts-ignore
+    formData.append('file', {
+      uri: fileUri,
+      name: filename,
+      type: 'image/jpeg',
+    });
+
+    return (await api.post(`/processor/lab-report/${batchId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    })).data;
+  }
+};
+
+// --- 4. CONSUMER (Public) ---
+export const ConsumerAPI = {
+  getStory: async (batchId: string) => {
+    try {
+      const res = await api.get(`/consumer/story/${batchId}`);
+      return res.data;
+    } catch (e) {
+      console.error("Story Error", e);
+      return null;
+    }
   }
 };
 
