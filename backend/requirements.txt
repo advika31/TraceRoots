@@ -11,4 +11,4 @@ jinja2
 moviepy
 google-cloud-texttospeech
 pillow
-egde-tts
+edge-tts
