@@ -1,12 +1,14 @@
-// frontend/app/processor/scan-batch.tsx
 import { useEffect, useState } from "react";
 import { Text, View, StyleSheet, TouchableOpacity, Alert } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
+import { CameraView, useCameraPermissions, BarcodeScanningResult } from "expo-camera";
 import Navbar from "../components/Navbar";
+import { ProcessorAPI } from "../../services/api";
+import { useRouter } from "expo-router";
 
 export default function ScanBatch() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     requestPermission();
@@ -21,12 +23,20 @@ export default function ScanBatch() {
     );
   }
 
-  const handleScan = () => {
+  const handleBarCodeScanned = async (result: BarcodeScanningResult) => {
+    if (scanned) return;
     setScanned(true);
-    Alert.alert(
-      "Batch Verified ✅",
-      "Batch ID: TR-102\nAI Authenticity Score: 96%\nBlockchain Trace: Available"
-    );
+    try {
+      const batchId = result.data;
+      const data = await ProcessorAPI.getBatch(batchId);
+      if (data) {
+        router.push({ pathname: "/processor/upload-lab-test", params: { batchId } });
+      } else {
+        Alert.alert("Not Found", "Batch not found in system.");
+      }
+    } catch {
+      Alert.alert("Network Error", "Could not reach server.");
+    }
   };
 
   return (
@@ -34,11 +44,14 @@ export default function ScanBatch() {
       <Navbar />
       <Text style={styles.title}>Scan Batch QR</Text>
 
-      <CameraView style={styles.camera} />
+      <CameraView
+        style={styles.camera}
+        onBarcodeScanned={handleBarCodeScanned}
+      />
 
-      <TouchableOpacity style={styles.scanButton} onPress={handleScan}>
+      <TouchableOpacity style={styles.scanButton} onPress={() => setScanned(false)}>
         <Text style={styles.scanText}>
-          {scanned ? "Scanned ✔" : "Simulate QR Scan"}
+          {scanned ? "Tap to Scan Again" : "Waiting for QR"}
         </Text>
       </TouchableOpacity>
     </View>

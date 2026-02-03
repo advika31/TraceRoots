@@ -1,21 +1,22 @@
-// /frontend/app/signup.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthAPI } from '../services/api'; 
-import { Ionicons } from '@expo/vector-icons';
+import { AuthAPI } from '../services/api';
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Signup() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
-  
+
   const [form, setForm] = useState({
     username: '',
     email: '',
     password: '',
     full_name: '',
-    location: ''
+    location: '',
+    role: 'COLLECTOR'
   });
 
   const handleSignup = async () => {
@@ -26,18 +27,20 @@ export default function Signup() {
 
     setLoading(true);
     try {
-      // 1. Call the Backend
       const data = await AuthAPI.signup(form);
-      
-      // 2. Save Session Data
+
       await AsyncStorage.setItem('userToken', data.access_token);
       await AsyncStorage.setItem('userId', data.user_id.toString());
       await AsyncStorage.setItem('userRole', data.role);
+      await AsyncStorage.setItem('username', form.username);
 
-      // 3. Navigate based on Role 
       Alert.alert("Success", "Account Created!");
-      router.replace('/collector/collector_dashboard');
-      
+      if (data.role === "PROCESSOR") router.replace('/processor/processor_dashboard');
+      else if (data.role === "REGULATOR") router.replace('/regulator/regulator_dashboard');
+      else if (data.role === "CONSUMER") router.replace('/consumer/consumer_dashboard');
+      else if (data.role === "NGO") router.replace('/ngo/dashboard');
+      else router.replace('/collector/collector_dashboard');
+
     } catch (error: any) {
       const msg = error.response?.data?.detail || "Signup failed. Check internet.";
       Alert.alert("Error", msg);
@@ -48,39 +51,53 @@ export default function Signup() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Join TraceRoots 🌱</Text>
-      <Text style={styles.subtitle}>Create your farmer profile</Text>
+      <Text style={styles.title}>{t("signup_title")}</Text>
+      <Text style={styles.subtitle}>{t("signup_subtitle")}</Text>
 
       <View style={styles.inputContainer}>
-        <TextInput 
-          placeholder="Full Name" 
-          style={styles.input} 
-          onChangeText={(t) => setForm({...form, full_name: t})}
+        <TextInput
+          placeholder="Full Name"
+          style={styles.input}
+          onChangeText={(t) => setForm({ ...form, full_name: t })}
         />
-        <TextInput 
-          placeholder="Username" 
-          style={styles.input} 
+        <TextInput
+          placeholder="Username"
+          style={styles.input}
           autoCapitalize="none"
-          onChangeText={(t) => setForm({...form, username: t})}
+          onChangeText={(t) => setForm({ ...form, username: t })}
         />
-        <TextInput 
-          placeholder="Email" 
-          style={styles.input} 
+        <TextInput
+          placeholder="Email"
+          style={styles.input}
           keyboardType="email-address"
           autoCapitalize="none"
-          onChangeText={(t) => setForm({...form, email: t})}
+          onChangeText={(t) => setForm({ ...form, email: t })}
         />
-        <TextInput 
-          placeholder="Password" 
-          style={styles.input} 
+        <TextInput
+          placeholder="Password"
+          style={styles.input}
           secureTextEntry
-          onChangeText={(t) => setForm({...form, password: t})}
+          onChangeText={(t) => setForm({ ...form, password: t })}
         />
-        <TextInput 
-          placeholder="Location (e.g., Punjab)" 
-          style={styles.input} 
-          onChangeText={(t) => setForm({...form, location: t})}
+        <TextInput
+          placeholder="Location (e.g., Punjab)"
+          style={styles.input}
+          onChangeText={(t) => setForm({ ...form, location: t })}
         />
+        <Text style={styles.roleLabel}>Select Role</Text>
+        <View style={styles.roleRow}>
+          {["COLLECTOR", "PROCESSOR", "REGULATOR", "CONSUMER", "NGO"].map((r) => (
+            <TouchableOpacity
+              key={r}
+              style={[styles.rolePill, form.role === r && styles.rolePillActive]}
+              onPress={() => setForm({ ...form, role: r })}
+            >
+              <Text style={[styles.roleText, form.role === r && styles.roleTextActive]}>
+                {r}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       <TouchableOpacity style={styles.btn} onPress={handleSignup} disabled={loading}>
@@ -100,6 +117,12 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 16, color: '#666', marginBottom: 30, textAlign: 'center' },
   inputContainer: { gap: 15, marginBottom: 25 },
   input: { backgroundColor: '#fff', padding: 15, borderRadius: 10, borderWidth: 1, borderColor: '#ddd' },
+  roleLabel: { marginTop: 5, fontWeight: '600', color: '#2e7d32' },
+  roleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  rolePill: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#e5e7eb' },
+  rolePillActive: { backgroundColor: '#2e7d32' },
+  roleText: { color: '#374151', fontWeight: '600', fontSize: 12 },
+  roleTextActive: { color: '#fff' },
   btn: { backgroundColor: '#2e7d32', padding: 15, borderRadius: 10, alignItems: 'center' },
   btnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   link: { marginTop: 20, textAlign: 'center', color: '#2e7d32', fontWeight: '600' }

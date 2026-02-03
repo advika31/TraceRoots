@@ -70,7 +70,9 @@ class Batch(BatchBase):
     batch_id: str
     farmer_id: int
     harvest_date: datetime
+    expiry_date: Optional[datetime] = None
     status: BatchStatus
+    qr_code_url: Optional[str] = None
     
     # Processor & Blockchain
     quality_grade: Optional[str] = None

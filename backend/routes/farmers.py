@@ -49,7 +49,7 @@ def create_farmer(user: schemas.UserCreate, db: Session = Depends(get_db)):
     }
 
 @router.post("/login", response_model=schemas.Token)
-def login(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
+def login(user_data: schemas.UserLogin, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == user_data.username).first()
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid credentials")
@@ -76,3 +76,18 @@ def get_farmer_stats(user_id: int, db: Session = Depends(get_db)):
         "tokens": user.impact_tokens,
         "zone": "Green (Safe)" 
     }
+
+@router.get("/{user_id}/notifications")
+def get_farmer_notifications(user_id: int, db: Session = Depends(get_db)):
+    notes = db.query(models.Notification).filter(
+        models.Notification.user_id == user_id
+    ).order_by(models.Notification.timestamp.desc()).limit(50).all()
+    return [
+        {
+            "id": n.id,
+            "message": n.message,
+            "type": n.type,
+            "priority": n.priority,
+            "timestamp": n.timestamp
+        } for n in notes
+    ]

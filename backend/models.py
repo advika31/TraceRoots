@@ -63,6 +63,8 @@ class Notification(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     type = Column(String, default=NotificationType.INFO)
+    sender = Column(String, nullable=True)
+    priority = Column(String, default="Normal")
     message = Column(String)
     is_read = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
@@ -82,6 +84,8 @@ class Batch(Base):
     harvest_date = Column(DateTime, default=datetime.datetime.utcnow)
     status = Column(String, default=BatchStatus.HARVESTED)
     video_story_url = Column(String, nullable=True)
+    qr_code_url = Column(String, nullable=True)
+    expiry_date = Column(DateTime, nullable=True)
         
     # Location (Geospatial)
     latitude = Column(Float, default=0.0)

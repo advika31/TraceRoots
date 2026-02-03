@@ -8,9 +8,15 @@ export function AuthProvider({ children }: any) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    AsyncStorage.getItem("collector").then((data) => {
-      if (data) setUser(JSON.parse(data));
-    });
+    const load = async () => {
+      const token = await AsyncStorage.getItem("userToken");
+      const userId = await AsyncStorage.getItem("userId");
+      const role = await AsyncStorage.getItem("userRole");
+      if (token && userId && role) {
+        setUser({ token, userId: Number(userId), role });
+      }
+    };
+    load();
   }, []);
 
   return (

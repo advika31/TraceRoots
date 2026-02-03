@@ -1,63 +1,42 @@
-// frontend/app/regulator/messaging.tsx
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
+import { RegulatorAPI } from "@/services/api";
 
 type Message = {
-  sender: string;
-  role: string;
-  content: string;
-  priority: "Normal" | "Important" | "Urgent";
-  time: string;
+  id: number;
+  farmer_id: number;
+  message: string;
+  priority: string;
+  timestamp: string;
 };
 
 export default function RegulatorMessaging() {
   const [newMessage, setNewMessage] = useState("");
+  const [farmerId, setFarmerId] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      sender: "District Forest Officer",
-      role: "Almora Division",
-      content: "Monthly compliance report submitted for review.",
-      priority: "Normal",
-      time: "Today, 10:15 AM",
-    },
-    {
-      sender: "System Alert",
-      role: "Automated",
-      content: "Pithoragarh Timber Zone exceeded sustainable batch limit.",
-      priority: "Urgent",
-      time: "Yesterday, 6:40 PM",
-    },
-    {
-      sender: "Field Inspector",
-      role: "Champawat",
-      content: "Illegal harvesting activity reported near Lohaghat range.",
-      priority: "Important",
-      time: "Yesterday, 2:20 PM",
-    },
-  ]);
-
-  const handleSend = () => {
-    if (!newMessage.trim()) return;
-
-    const msg: Message = {
-      sender: "You",
-      role: "Regulator",
-      content: newMessage,
-      priority: "Normal",
-      time: "Just now",
-    };
-
-    setMessages([msg, ...messages]);
-    setNewMessage("");
-    Alert.alert("Message Sent", "Your communication has been delivered.");
+  const load = async () => {
+    const data = await RegulatorAPI.getMessages();
+    setMessages(Array.isArray(data) ? data : []);
   };
 
-  const getPriorityStyle = (p: string) => {
-    if (p === "Urgent") return styles.urgent;
-    if (p === "Important") return styles.important;
-    return styles.normal;
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleSend = async () => {
+    if (!newMessage.trim() || !farmerId.trim()) return;
+    const id = Number(farmerId);
+    if (Number.isNaN(id)) {
+      Alert.alert("Invalid", "Enter a valid farmer ID");
+      return;
+    }
+    await RegulatorAPI.sendMessage({ farmer_id: id, message: newMessage, priority: "Important" });
+    setNewMessage("");
+    setFarmerId("");
+    Alert.alert("Message Sent", "Your warning has been delivered.");
+    load();
   };
 
   return (
@@ -66,13 +45,19 @@ export default function RegulatorMessaging() {
 
       <Text style={styles.title}>Regulator Messaging Center</Text>
 
-      {/* Compose Box */}
       <View style={styles.composeCard}>
         <Text style={styles.sectionTitle}>Compose Message</Text>
         <TextInput
+          value={farmerId}
+          onChangeText={setFarmerId}
+          placeholder="Farmer ID"
+          keyboardType="numeric"
+          style={styles.input}
+        />
+        <TextInput
           value={newMessage}
           onChangeText={setNewMessage}
-          placeholder="Write instruction or communication..."
+          placeholder="Write instruction or warning..."
           multiline
           style={styles.textarea}
         />
@@ -81,23 +66,16 @@ export default function RegulatorMessaging() {
         </TouchableOpacity>
       </View>
 
-      {/* Inbox */}
-      <Text style={styles.sectionTitle}>Inbox</Text>
+      <Text style={styles.sectionTitle}>Sent Messages</Text>
 
-      {messages.map((msg, index) => (
-        <View key={index} style={styles.messageCard}>
+      {messages.map((msg) => (
+        <View key={msg.id} style={styles.messageCard}>
           <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.sender}>{msg.sender}</Text>
-              <Text style={styles.role}>{msg.role}</Text>
-            </View>
-            <Text style={[styles.priority, getPriorityStyle(msg.priority)]}>
-              {msg.priority}
-            </Text>
+            <Text style={styles.sender}>Farmer ID: {msg.farmer_id}</Text>
+            <Text style={styles.priority}>{msg.priority}</Text>
           </View>
-
-          <Text style={styles.content}>{msg.content}</Text>
-          <Text style={styles.time}>{msg.time}</Text>
+          <Text style={styles.content}>{msg.message}</Text>
+          <Text style={styles.time}>{new Date(msg.timestamp).toLocaleString()}</Text>
         </View>
       ))}
     </ScrollView>
@@ -129,6 +107,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#065f46",
+    marginBottom: 10,
+  },
+  input: {
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#d1fae5",
+    padding: 10,
     marginBottom: 10,
   },
   textarea: {
@@ -168,9 +154,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#064e3b",
   },
-  role: {
+  priority: {
     fontSize: 12,
-    color: "#6b7280",
+    fontWeight: "bold",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: "#fef3c7",
+    color: "#92400e",
   },
   content: {
     color: "#374151",
@@ -180,25 +172,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#9ca3af",
     textAlign: "right",
-  },
-  priority: {
-    fontSize: 12,
-    fontWeight: "bold",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    overflow: "hidden",
-  },
-  normal: {
-    backgroundColor: "#d1fae5",
-    color: "#065f46",
-  },
-  important: {
-    backgroundColor: "#fef3c7",
-    color: "#92400e",
-  },
-  urgent: {
-    backgroundColor: "#fee2e2",
-    color: "#7f1d1d",
   },
 });

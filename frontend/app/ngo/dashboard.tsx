@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, RefreshControl } from 'react-native';
 import { SurplusAPI } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function NGODashboard() {
   const [donations, setDonations] = useState<any[]>([]);
@@ -24,7 +25,8 @@ export default function NGODashboard() {
 
   const handleClaim = async (batchId: string) => {
     try {
-      await SurplusAPI.claimBatch(batchId, 501); // Mock NGO ID 501
+      const ngoId = await AsyncStorage.getItem('userId');
+      await SurplusAPI.claimBatch(batchId, Number(ngoId || 0));
       Alert.alert("Success", "You have claimed this donation!");
       loadDonations();
     } catch (e) {

@@ -63,10 +63,12 @@
 #     }
 from utils.tts_utils import generate_voiceover
 from utils.video_utils import generate_video
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, APIRouter
 from database import get_db
 from sqlalchemy.orm import Session
 import models
+
+router = APIRouter(prefix="/consumer", tags=["Consumer"])
 
 @router.get("/consumer/video/{batch_id}")
 def get_or_generate_video(batch_id: str, db: Session = Depends(get_db)):
