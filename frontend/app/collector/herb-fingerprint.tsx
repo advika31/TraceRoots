@@ -1,5 +1,3 @@
-// frontend/app/(tabs)/collector/herb-fingerprint.tsx
-
 import {
   ScrollView,
   View,
@@ -8,14 +6,16 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import api from "@/services/api";
 
 export default function HerbFingerprint() {
   const [image, setImage] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
 
   const takePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -31,20 +31,27 @@ export default function HerbFingerprint() {
     }
   };
 
-  const submitForAnalysis = () => {
+  const submitForAnalysis = async () => {
+    if (!image) return;
     setAnalyzing(true);
-
-    setTimeout(() => {
+    try {
+      const formData = new FormData();
+      const filename = image.split("/").pop() || "herb.jpg";
+      formData.append("file", { uri: image, name: filename, type: "image/jpeg" } as any);
+      const res = await api.post("/ai/analyze", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setResult(res.data);
+    } catch (e) {
+      Alert.alert("Analysis failed", "Could not reach server.");
+    } finally {
       setAnalyzing(false);
-      setResult(
-        "✅ Herb identified as Ashwagandha\n🌱 Purity: 96%\n⚠️ No adulterants detected"
-      );
-    }, 2000);
+    }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.page}>
-      <Text style={styles.title}>🌿 Herb Fingerprint</Text>
+      <Text style={styles.title}>Herb Fingerprint</Text>
 
       <View style={styles.card}>
         {image ? (
@@ -63,13 +70,20 @@ export default function HerbFingerprint() {
             onPress={submitForAnalysis}
             disabled={analyzing}
           >
-            <Text style={styles.btnText}>
-              {analyzing ? "Analyzing..." : "Submit for Analysis"}
-            </Text>
+            {analyzing ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.btnText}>Submit for Analysis</Text>
+            )}
           </TouchableOpacity>
         )}
 
-        {result && <Text style={styles.result}>{result}</Text>}
+        {result && (
+          <View style={styles.resultBox}>
+            <Text>Quality Score: {result.quality_score}</Text>
+            <Text>Status: {result.label}</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -101,10 +115,5 @@ const styles = StyleSheet.create({
   },
   secondaryBtn: { backgroundColor: "#065f46", padding: 14, borderRadius: 12 },
   btnText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
-  result: {
-    marginTop: 15,
-    color: "#166534",
-    fontWeight: "600",
-    lineHeight: 22,
-  },
+  resultBox: { marginTop: 15, backgroundColor: "#ecfdf5", padding: 12, borderRadius: 10 },
 });

@@ -1,4 +1,3 @@
-// frontend/app/processor/update-batch-status.tsx
 import { useState } from "react";
 import {
   Alert,
@@ -9,33 +8,23 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
-import API from "@/services/api";
+import { ProcessorAPI } from "@/services/api";
 
 export default function UpdateBatchStatus() {
   const router = useRouter();
-
   const [batchId, setBatchId] = useState("");
-  const [newStatus, setNewStatus] = useState("");
 
-  const updateStatus = async () => {
-    if (!batchId || !newStatus) {
-      Alert.alert("Batch ID and status are required");
+  const updateStatus = async (status: string) => {
+    if (!batchId) {
+      Alert.alert("Batch ID is required");
       return;
     }
-
     try {
-      await API.patch("/processor/batch-status", {
-        batch_id: Number(batchId),
-        new_status: newStatus,
-      });
-
-      Alert.alert("Success", "Batch status updated");
+      await ProcessorAPI.updateStatus(batchId, status);
+      Alert.alert("Success", `Batch status updated to ${status}`);
       router.back();
     } catch (e: any) {
-      Alert.alert(
-        "Error",
-        e?.response?.data?.detail || "Failed to update status"
-      );
+      Alert.alert("Error", e?.response?.data?.detail || "Failed to update status");
     }
   };
 
@@ -46,27 +35,20 @@ export default function UpdateBatchStatus() {
       <TextInput
         style={styles.input}
         placeholder="Batch ID"
-        keyboardType="numeric"
         value={batchId}
         onChangeText={setBatchId}
       />
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => setNewStatus("processed")}
-      >
-        <Text style={styles.buttonText}>Mark as Processed</Text>
+      <TouchableOpacity style={styles.button} onPress={() => updateStatus("AT_PROCESSOR")}>
+        <Text style={styles.buttonText}>Mark as At Processor</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => setNewStatus("approved")}
-      >
-        <Text style={styles.buttonText}>Approve Batch</Text>
+      <TouchableOpacity style={styles.button} onPress={() => updateStatus("IN_TRANSIT")}>
+        <Text style={styles.buttonText}>Mark as In Transit</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={updateStatus}>
-        <Text style={styles.buttonText}>Update Status</Text>
+      <TouchableOpacity style={styles.button} onPress={() => updateStatus("SOLD")}>
+        <Text style={styles.buttonText}>Mark as Sold</Text>
       </TouchableOpacity>
     </View>
   );

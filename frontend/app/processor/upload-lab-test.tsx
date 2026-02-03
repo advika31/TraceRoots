@@ -4,12 +4,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { ProcessorAPI } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function UploadLabTest() {
   const router = useRouter();
   const { batchId } = useLocalSearchParams();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState('');
+  const [grade, setGrade] = useState('');
   const [image, setImage] = useState<string | null>(null);
 
   const pickImage = async () => {
@@ -25,8 +27,8 @@ export default function UploadLabTest() {
   };
 
   const handleSubmit = async () => {
-    if (!result || !image) {
-      Alert.alert("Missing Info", "Please enter result summary and attach report image.");
+    if (!result || !grade || !image) {
+      Alert.alert("Missing Info", "Please enter grade, result summary and attach report image.");
       return;
     }
 
@@ -34,7 +36,9 @@ export default function UploadLabTest() {
     try {
       const formData = new FormData();
       formData.append('result_summary', result);
-      formData.append('processor_id', '101'); // Mock ID
+      formData.append('quality_grade', grade);
+      const processorId = await AsyncStorage.getItem('userId');
+      formData.append('processor_id', processorId || '0');
       
       const filename = image.split('/').pop() || "report.jpg";
       // @ts-ignore
@@ -56,6 +60,15 @@ export default function UploadLabTest() {
     <View style={styles.container}>
       <Text style={styles.title}>Certify Batch #{batchId}</Text>
       <Text style={styles.subtitle}>Attach Quality Control Report</Text>
+
+      {/* Grade Input */}
+      <Text style={styles.label}>Quality Grade (A/B/C)</Text>
+      <TextInput 
+        style={styles.input} 
+        placeholder="e.g. A"
+        value={grade}
+        onChangeText={setGrade}
+      />
 
       {/* Result Input */}
       <Text style={styles.label}>Result Summary</Text>

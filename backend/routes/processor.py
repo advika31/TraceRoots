@@ -18,6 +18,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 def upload_lab_report(
     batch_id: str,
     result_summary: str = Form(...), 
+    quality_grade: str = Form(...),
     file: UploadFile = File(...),
     processor_id: int = Form(...),   
     db: Session = Depends(get_db)
@@ -54,7 +55,15 @@ def upload_lab_report(
     
     # 4. Update Batch Status
     batch.status = models.BatchStatus.LAB_TESTED
-    batch.ai_quality_score = 95.0 # Mock
+    batch.quality_grade = quality_grade
+    if batch.owner:
+        db.add(models.Notification(
+            user_id=batch.owner.id,
+            type=models.NotificationType.INFO,
+            sender="Processor",
+            priority="Normal",
+            message=f"Batch {batch.batch_id} certified. Grade {quality_grade}."
+        ))
     
     db.commit()
     
@@ -71,5 +80,15 @@ def update_batch_status(
         raise HTTPException(status_code=404, detail="Batch not found")
     
     batch.status = status
+    if status == models.BatchStatus.SOLD and batch.owner:
+        # Reward farmer when sale is confirmed
+        batch.owner.impact_tokens += 10
+        db.add(models.Notification(
+            user_id=batch.owner.id,
+            type=models.NotificationType.SUCCESS,
+            sender="System",
+            priority="Normal",
+            message=f"Batch {batch.batch_id} sold. +10 Impact Tokens credited."
+        ))
     db.commit()
     return {"status": "Updated", "new_status": status}

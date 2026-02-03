@@ -54,3 +54,17 @@ def login(creds: schemas.UserLogin, db: Session = Depends(get_db)):
         "user_id": user.id,
         "role": user.role
     }
+
+@router.get("/user/{user_id}")
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": user.id,
+        "username": user.username,
+        "full_name": user.full_name,
+        "location": user.location,
+        "role": user.role,
+        "impact_tokens": user.impact_tokens
+    }

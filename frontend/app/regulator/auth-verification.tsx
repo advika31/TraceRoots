@@ -1,4 +1,3 @@
-// frontend/app/regulator/auth-verification.tsx
 import { useState } from "react";
 import {
   Alert,
@@ -8,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import API from "@/services/api";
+import api from "@/services/api";
 
 export default function AuthVerification() {
   const [batchId, setBatchId] = useState("");
@@ -23,13 +22,10 @@ export default function AuthVerification() {
 
     setLoading(true);
     try {
-      const res = await API.get(`/regulator/verify/${batchId}`);
+      const res = await api.get(`/regulator/verify/${batchId}`);
       setResult(res.data);
     } catch (e: any) {
-      Alert.alert(
-        "Verification Failed",
-        e?.response?.data?.detail || "Error verifying batch"
-      );
+      Alert.alert("Verification Failed", e?.response?.data?.detail || "Error verifying batch");
       setResult(null);
     } finally {
       setLoading(false);
@@ -43,7 +39,6 @@ export default function AuthVerification() {
       <TextInput
         style={styles.input}
         placeholder="Enter Batch ID"
-        keyboardType="numeric"
         value={batchId}
         onChangeText={setBatchId}
       />
@@ -57,12 +52,10 @@ export default function AuthVerification() {
       {result && (
         <View style={styles.card}>
           <Text style={styles.status}>
-            {result.on_chain_verified ? "✅ VERIFIED" : "❌ NOT VERIFIED"}
+            {result.on_chain_verified ? "VERIFIED" : "NOT VERIFIED"}
           </Text>
-          <Text>🧾 Status: {result.status}</Text>
-          <Text>
-            🔗 TX: {result.blockchain_tx || "Not available"}
-          </Text>
+          <Text>Status: {result.status}</Text>
+          <Text>TX: {result.blockchain_tx || "Not available"}</Text>
         </View>
       )}
     </View>
