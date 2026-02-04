@@ -1,34 +1,50 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
-
-contract Lock {
-    uint public unlockTime;
-    address payable public owner;
-
-    event Withdrawal(uint amount, uint when);
-
-    constructor(uint _unlockTime) payable {
-        require(
-            block.timestamp < _unlockTime,
-            "Unlock time should be in the future"
-        );
-
-        unlockTime = _unlockTime;
-        owner = payable(msg.sender);
+contract TraceRoots {
+    struct Batch {
+        string batchId;
+        string cropType;
+        string originHash;
+        uint256 expiryDate;
+        uint256 timestamp;
     }
 
-    function withdraw() public {
-        // Uncomment this line, and the import of "hardhat/console.sol", to print a log in your terminal
-        // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
+    mapping(string => Batch) public batches;
 
-        require(block.timestamp >= unlockTime, "You can't withdraw yet");
-        require(msg.sender == owner, "You aren't the owner");
+    function addBatch(
+        string memory _batchId,
+        string memory _cropType,
+        string memory _originHash,
+        uint256 _expiryDate
+    ) public {
+        batches[_batchId] = Batch(
+            _batchId,
+            _cropType,
+            _originHash,
+            _expiryDate,
+            block.timestamp
+        );
+    }
 
-        emit Withdrawal(address(this).balance, block.timestamp);
-
-        owner.transfer(address(this).balance);
+    function getBatch(string memory _batchId)
+        public
+        view
+        returns (
+            string memory,
+            string memory,
+            string memory,
+            uint256,
+            uint256
+        )
+    {
+        Batch memory b = batches[_batchId];
+        return (
+            b.batchId,
+            b.cropType,
+            b.originHash,
+            b.expiryDate,
+            b.timestamp
+        );
     }
 }
