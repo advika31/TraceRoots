@@ -2,35 +2,31 @@ import os
 from moviepy.video.VideoClip import ImageClip
 from moviepy.video.compositing.CompositeVideoClip import concatenate_videoclips
 from moviepy.audio.io.AudioFileClip import AudioFileClip
-
+from moviepy.audio.AudioClip import AudioClip, CompositeAudioClip
 
 VIDEO_SIZE = (1280, 720)
+AUDIO_FPS = 44100
+TARGET_DURATION = 10.0
 
 os.makedirs("static/generated_videos", exist_ok=True)
 
-from moviepy.audio.AudioClip import AudioClip, CompositeAudioClip
-
 def generate_video(batch, audio_path: str) -> str:
-    import os
-
     print("🎧 AUDIO PATH RECEIVED:", audio_path)
     print("📁 ABSOLUTE PATH:", os.path.abspath(audio_path))
     print("✅ AUDIO EXISTS:", os.path.exists(audio_path))
-    TARGET_DURATION = 10.0
-    AUDIO_FPS = 44100
 
     image_paths = [
-        "static/video_templates/farm.jpg",
-        "static/video_templates/lab.jpg",
-        "static/video_templates/blockchain.jpg",
-        "static/video_templates/impact.jpg",
+        "video_templates/farm.jpg",
+        "video_templates/lab.jpg",
+        "video_templates/blockchain.jpg",
+        "video_templates/impact.jpg",
     ]
 
     # 1️⃣ Load narration
     narration = AudioFileClip(audio_path).with_fps(AUDIO_FPS)
     narration_duration = narration.duration
 
-    # 2️⃣ Add silence if needed
+    # 2️⃣ Handle audio length
     if narration_duration < TARGET_DURATION:
         silence = AudioClip(
             lambda t: 0.0,
@@ -43,11 +39,11 @@ def generate_video(batch, audio_path: str) -> str:
             silence.with_start(narration_duration)
         ])
     else:
-        audio = narration.subclip(0, TARGET_DURATION)
+        audio = narration.with_duration(TARGET_DURATION)
 
     audio = audio.with_duration(TARGET_DURATION)
 
-    # 3️⃣ Build video
+    # 3️⃣ Build video from images
     scene_duration = TARGET_DURATION / len(image_paths)
     clips = []
 
