@@ -46,3 +46,7 @@ app-example
 backend/.vercel
 backend/static
 backend/venv
+
+# Python cache files
+__pycache__/
+*.pyc
