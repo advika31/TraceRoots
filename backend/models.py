@@ -94,7 +94,7 @@ class Batch(Base):
 
     # Processor Grading
     freshness_score = Column(Float, nullable=True)
-    quality_grade = Column(String, nullable=True) 
+    quality_grade = Column(String, nullable=True)
     estimated_shelf_life = Column(Integer, nullable=True)
     visual_defects = Column(String, nullable=True)
     processor_notes = Column(String, nullable=True)
