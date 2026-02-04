@@ -45,3 +45,4 @@ app-example
 #backend
 backend/.vercel
 backend/static
+backend/venv

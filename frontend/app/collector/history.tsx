@@ -1,53 +1,22 @@
-// /frontend/app/(tabs)/collector/history.tsx
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import API from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const DEMO_BATCHES = [
-  {
-    id: 1,
-    crop_type: "Wheat",
-    quantity_kg: 100,
-    status: "pending",
-  },
-  {
-    id: 2,
-    crop_type: "Millet",
-    quantity_kg: 60,
-    status: "distributed",
-  },
-];
-
-interface Batch {
-  id: number;
-  crop_type: string;
-  quantity_kg: number;
-  status: string;
-}
+import { CollectorAPI } from "@/services/api";
 
 export default function CollectorHistory() {
-  const [batches, setBatches] = useState<Batch[]>([]);
+  const [batches, setBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const stored = await AsyncStorage.getItem("collector");
-        if (!stored) return;
-
-        const farmer = JSON.parse(stored);
-
-        const res = await API.get("/batches/all");
-
-        const list = res.data.filter(
-          (batch: any) => batch.farmer_id === farmer.id
-        );
-
-        setBatches(list.length > 0 ? list : DEMO_BATCHES);
+        const userId = await AsyncStorage.getItem("userId");
+        if (!userId) return;
+        const list = await CollectorAPI.getHistory(Number(userId));
+        setBatches(list || []);
       } catch (error) {
         console.log("Error fetching batches", error);
-        setBatches(DEMO_BATCHES);
+        setBatches([]);
       } finally {
         setLoading(false);
       }
@@ -72,11 +41,11 @@ export default function CollectorHistory() {
         <Text style={styles.empty}>No batches found</Text>
       ) : (
         batches.map((batch) => (
-          <View key={batch.id} style={styles.card}>
-            <Text style={styles.herb}>{batch.crop_type}</Text>
-            <Text>📦 Quantity: {batch.quantity_kg} kg</Text>
-            <Text>🧾 Status: {batch.status}</Text>
-            <Text style={styles.id}>Batch ID: {batch.id}</Text>
+          <View key={batch.batch_id} style={styles.card}>
+            <Text style={styles.herb}>{batch.crop_name}</Text>
+            <Text>Quantity: {batch.quantity} kg</Text>
+            <Text>Status: {batch.status}</Text>
+            <Text style={styles.id}>Batch ID: {batch.batch_id}</Text>
           </View>
         ))
       )}

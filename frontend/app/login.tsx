@@ -1,4 +1,3 @@
-// frontend/app/login.tsx
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -8,76 +7,58 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
-import API from "@/services/api";
+import { AuthAPI } from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [walletAddress, setWalletAddress] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  // const processorCredentials = {
-  //   email: "processor@example.com",
-  //   password: "123",
-  // };
+  const { t } = useLanguage();
 
   const handleLogin = async () => {
-    // PROCESSOR
-    if (role === "Processor") {
-      router.replace("/processor/processor_dashboard");
+    if (!username || !password) {
+      Alert.alert("Missing Details", "Please enter username and password.");
       return;
     }
+    setLoading(true);
+    try {
+      const data = await AuthAPI.login({ username, password });
+      await AsyncStorage.setItem("userToken", data.access_token);
+      await AsyncStorage.setItem("userId", data.user_id.toString());
+      await AsyncStorage.setItem("userRole", data.role);
+      await AsyncStorage.setItem("username", username);
 
-    // COLLECTOR (wallet-based login)
-    if (role === "Collector") {
-      try {
-        const res = await API.post("/farmers/login", {
-          wallet_address: walletAddress,
-        });
-
-        await AsyncStorage.setItem("collector", JSON.stringify(res.data));
-        router.replace("/collector/collector_dashboard");
-        return;
-      } catch (error: any) {
-        Alert.alert(
-          "Login Failed",
-          error?.response?.data?.detail || "Invalid wallet address"
-        );
-        return;
-      }
-      
+      if (data.role === "PROCESSOR") router.replace("/processor/processor_dashboard");
+      else if (data.role === "REGULATOR") router.replace("/regulator/regulator_dashboard");
+      else if (data.role === "CONSUMER") router.replace("/consumer/consumer_dashboard");
+      else if (data.role === "NGO") router.replace("/ngo/dashboard");
+      else router.replace("/collector/collector_dashboard");
+    } catch (error: any) {
+      Alert.alert("Login Failed", error?.response?.data?.detail || "Invalid credentials");
+    } finally {
+      setLoading(false);
     }
-
-    // CONSUMER & REGULATOR (UI only)
-    if (role === "Consumer") {
-      router.replace("/consumer/consumer_dashboard");
-      return;
-    }
-
-    if (role === "Regulator") {
-      router.replace("/regulator/regulator_dashboard");
-      return;
-    }
-
-    Alert.alert("Please select a role");
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>TraceRoots Login</Text>
+      <Text style={styles.title}>{t("login_title")}</Text>
 
-      <Text style={styles.label}>Wallet Address</Text>
+      <Text style={styles.label}>{t("login_username")}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter your wallet address"
-        value={walletAddress}
-        onChangeText={setWalletAddress}
+        placeholder="Enter your username"
+        value={username}
+        autoCapitalize="none"
+        onChangeText={setUsername}
       />
 
-      <Text style={styles.label}>Password</Text>
+      <Text style={styles.label}>{t("login_password")}</Text>
       <TextInput
         style={styles.input}
         placeholder="Enter your password"
@@ -86,54 +67,12 @@ export default function Login() {
         onChangeText={setPassword}
       />
 
-      <Text style={styles.label}>Select Role</Text>
-      <TouchableOpacity
-        style={styles.roleButton}
-        onPress={() => setRole("Collector")}
-      >
-        <Text
-          style={role === "Collector" ? styles.roleTextActive : styles.roleText}
-        >
-          Collector
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.roleButton}
-        onPress={() => setRole("Processor")}
-      >
-        <Text
-          style={role === "Processor" ? styles.roleTextActive : styles.roleText}
-        >
-          Processor
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.roleButton}
-        onPress={() => setRole("Regulator")}
-      >
-        <Text
-          style={role === "Regulator" ? styles.roleTextActive : styles.roleText}
-        >
-          Regulator
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.roleButton}
-        onPress={() => setRole("Consumer")}
-      >
-        <Text
-          style={role === "Consumer" ? styles.roleTextActive : styles.roleText}
-        >
-          Consumer
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t("login_button")}</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push("/signup")}>
-        <Text style={styles.linkText}>Don’t have an account? Sign Up</Text>
+        <Text style={styles.linkText}>Do not have an account? Sign Up</Text>
       </TouchableOpacity>
     </View>
   );
@@ -166,21 +105,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#d1d5db",
     marginBottom: 15,
-  },
-  roleButton: {
-    backgroundColor: "#e5e7eb",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 10,
-    alignItems: "center",
-  },
-  roleText: {
-    color: "#374151",
-    fontWeight: "600",
-  },
-  roleTextActive: {
-    color: "#15803d",
-    fontWeight: "700",
   },
   button: {
     backgroundColor: "#15803d",

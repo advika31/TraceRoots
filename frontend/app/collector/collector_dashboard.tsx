@@ -1,66 +1,61 @@
-// frontend/app/collector/collector_dashboard.tsx
-
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Navbar from "../components/Navbar"; // ✅ reusable navbar
-import { useEffect, useState } from "react";
-import API from "@/services/api";
+import Navbar from "../components/Navbar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CollectorAPI, NotificationsAPI } from "@/services/api";
 
 export default function CollectorDashboard() {
   const router = useRouter();
   const [collectorName, setCollectorName] = useState("");
   const [batchCount, setBatchCount] = useState(0);
   const [tokens, setTokens] = useState(0);
-  
+  const [notifications, setNotifications] = useState<any[]>([]);
+
   useEffect(() => {
-     const loadCollector = async () => {
-    const data = await AsyncStorage.getItem("collector");
-    if (data) {
-      const farmer = JSON.parse(data);
-      setCollectorName(farmer.name);
-    }
-  };
+    const load = async () => {
+      const userId = await AsyncStorage.getItem("userId");
+      const name = await AsyncStorage.getItem("username");
+      if (name) setCollectorName(name);
+      if (!userId) return;
 
-  loadCollector();
-  const fetchDashboardData = async () => {
-    try {
-      const batchesRes = await API.get("/batches/all");
-      setBatchCount(batchesRes.data.length);
+      const stats = await CollectorAPI.getStats(Number(userId));
+      setBatchCount(stats.batches || 0);
+      setTokens(stats.tokens || 0);
 
-      // TEMP: using collector ID = 1
-      const tokensRes = await API.get("/farmers/tokens/1");
-      setTokens(tokensRes.data.tokens);
-    } catch (error) {
-      console.log("Dashboard fetch error", error);
-    }
-  };
-
-  fetchDashboardData();
-}, []);
+      const notes = await NotificationsAPI.getForUser(Number(userId));
+      setNotifications(Array.isArray(notes) ? notes.slice(0, 3) : []);
+    };
+    load();
+    const interval = setInterval(load, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Navbar */}
       <Navbar />
 
-      {/* Welcome Message */}
-      <Text style={styles.welcomeText}>Welcome Collector {collectorName} ! </Text>
+      <Text style={styles.welcomeText}>Welcome {collectorName || "Collector"}!</Text>
 
-      {/* Top Status Card */}
       <View style={styles.statusCard}>
-        <Text style={styles.statusTitle}>
-          📡 Sync Status: <Text style={{ color: "#c1f0f0ff" }}>Online</Text>
-        </Text>
-        <Text style={styles.statusText}>📦 Total Batches: {batchCount}</Text>
-        <Text style={styles.statusText}>🪙 Tokens Earned: {tokens}</Text>
-        <Text style={styles.statusText}>🟢 Zone: Sustainable (Green)</Text>
-
+        <Text style={styles.statusTitle}>Sync Status: Online</Text>
+        <Text style={styles.statusText}>Total Batches: {batchCount}</Text>
+        <Text style={styles.statusText}>Tokens Earned: {tokens}</Text>
+        <Text style={styles.statusText}>Zone: Sustainable (Green)</Text>
       </View>
 
-      {/* Features Grid */}
+      <Text style={styles.sectionTitle}>Recent Alerts</Text>
+      {notifications.length === 0 ? (
+        <Text style={styles.emptyText}>No notifications</Text>
+      ) : (
+        notifications.map((n) => (
+          <View key={n.id} style={styles.noteCard}>
+            <Text style={styles.noteText}>{n.message}</Text>
+          </View>
+        ))
+      )}
+
       <Text style={styles.sectionTitle}>Collector Tools</Text>
       <View style={styles.grid}>
         <TouchableOpacity
@@ -84,17 +79,16 @@ export default function CollectorDashboard() {
           onPress={() => router.push("/collector/generate-batch")}
         >
           <MaterialIcons name="qr-code-2" size={30} color="#15803d" />
-          <Text style={styles.cardText}>Batch & QR</Text>
+          <Text style={styles.cardText}>Batch and QR</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-  style={styles.card}
-  onPress={() => router.push("/collector/surplus-redistribution")}
->
-  <MaterialIcons name="volunteer-activism" size={30} color="#15803d" />
-  <Text style={styles.cardText}>Donate Surplus</Text>
-</TouchableOpacity>
-
+          style={styles.card}
+          onPress={() => router.push("/collector/surplus-redistribution")}
+        >
+          <MaterialIcons name="volunteer-activism" size={30} color="#15803d" />
+          <Text style={styles.cardText}>Surplus Alerts</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.card}
@@ -104,7 +98,6 @@ export default function CollectorDashboard() {
           <Text style={styles.cardText}>Sustainability Map</Text>
         </TouchableOpacity>
       </View>
-
     </ScrollView>
   );
 }
@@ -112,7 +105,7 @@ export default function CollectorDashboard() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#f0fdf4", // themed light green
+    backgroundColor: "#f0fdf4",
     padding: 20,
     paddingBottom: 100,
     marginTop: 20,
@@ -149,7 +142,20 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#166534",
-    marginBottom: 20,
+    marginBottom: 10,
+  },
+  emptyText: {
+    color: "#6b7280",
+    marginBottom: 16,
+  },
+  noteCard: {
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  noteText: {
+    color: "#374151",
   },
   grid: {
     flexDirection: "row",

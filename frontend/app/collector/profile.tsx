@@ -1,4 +1,3 @@
-// /frontend/app/(tabs)/collector/profile.tsx
 import {
   View,
   Text,
@@ -11,40 +10,28 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import API from "@/services/api";
+import { AuthAPI, CollectorAPI } from "@/services/api";
 
 export default function Profile() {
-  const [collector, setCollector] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [batchCount, setBatchCount] = useState(0);
   const [tokens, setTokens] = useState(0);
 
   const router = useRouter();
-  const fetchStats = async (collectorId: number) => {
-    try {
-      const batchRes = await API.get("/batches/all");
-      const myBatches = batchRes.data.filter(
-        (b: any) => b.farmer_id === collectorId
-      );
-      setBatchCount(myBatches.length);
-
-      const tokenRes = await API.get(`/farmers/tokens/${collectorId}`);
-      setTokens(tokenRes.data.tokens);
-    } catch (e) {
-      console.log("Profile stats fetch failed", e);
-    }
-  };
 
   useEffect(() => {
     const loadProfile = async () => {
-      const data = await AsyncStorage.getItem("collector");
+      const userId = await AsyncStorage.getItem("userId");
       const storedAvatar = await AsyncStorage.getItem("collector_avatar");
+      if (!userId) return;
 
-      if (data) {
-        const parsed = JSON.parse(data);
-        setCollector(parsed);
-        fetchStats(parsed.id);
-      }
+      const profile = await AuthAPI.getUser(Number(userId));
+      setUser(profile);
+
+      const stats = await CollectorAPI.getStats(Number(userId));
+      setBatchCount(stats.batches || 0);
+      setTokens(stats.tokens || 0);
 
       if (storedAvatar) setAvatar(storedAvatar);
     };
@@ -77,22 +64,20 @@ export default function Profile() {
     router.replace("/login");
   };
 
-  if (!collector) return null;
+  if (!user) return null;
 
   return (
     <View style={styles.page}>
-      <Text style={styles.title}>👤 My Profile</Text>
+      <Text style={styles.title}>My Profile</Text>
 
-      {/* Profile Card */}
       <View style={styles.card}>
-        {/* Avatar */}
         <TouchableOpacity onPress={pickAvatar} activeOpacity={0.8}>
           <View style={styles.avatar}>
             {avatar ? (
               <Image source={{ uri: avatar }} style={styles.avatarImage} />
             ) : (
               <Text style={styles.avatarText}>
-                {collector.name?.[0]?.toUpperCase()}
+                {user.full_name?.[0]?.toUpperCase() || user.username?.[0]?.toUpperCase()}
               </Text>
             )}
           </View>
@@ -100,28 +85,17 @@ export default function Profile() {
 
         <Text style={styles.changeText}>Tap to change photo</Text>
 
-        <Text style={styles.name}>{collector.name}</Text>
-        <Text style={styles.role}>Collector</Text>
+        <Text style={styles.name}>{user.full_name || user.username}</Text>
+        <Text style={styles.role}>{user.role}</Text>
 
         <View style={styles.divider} />
 
-        {/* Info */}
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Wallet</Text>
-          <Text style={styles.value} numberOfLines={1}>
-            {collector.wallet_address}
-          </Text>
-        </View>
-
         <View style={styles.infoRow}>
           <Text style={styles.label}>Location</Text>
-          <Text style={styles.value}>
-            {collector.location || "Not provided"}
-          </Text>
+          <Text style={styles.value}>{user.location || "Not provided"}</Text>
         </View>
       </View>
 
-      {/* Stats */}
       <View style={styles.statsCard}>
         <View style={styles.statItem}>
           <Text style={styles.statValue}>{batchCount}</Text>
@@ -137,7 +111,6 @@ export default function Profile() {
         </View>
       </View>
 
-      {/* Logout */}
       <TouchableOpacity style={styles.logout} onPress={logout}>
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
@@ -153,7 +126,6 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
     marginTop: 30,
   },
-
   title: {
     fontSize: 30,
     fontWeight: "bold",
@@ -161,7 +133,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
-
   card: {
     backgroundColor: "#fff",
     borderRadius: 18,
@@ -170,7 +141,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     elevation: 3,
   },
-
   avatar: {
     width: 96,
     height: 96,
@@ -181,60 +151,50 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     overflow: "hidden",
   },
-
   avatarImage: {
     width: "100%",
     height: "100%",
   },
-
   avatarText: {
     color: "#fff",
     fontSize: 40,
     fontWeight: "bold",
   },
-
   changeText: {
     fontSize: 12,
     color: "#6b7280",
     marginBottom: 10,
   },
-
   name: {
     fontSize: 22,
     fontWeight: "700",
     color: "#111827",
   },
-
   role: {
     fontSize: 14,
     color: "#6b7280",
     marginBottom: 16,
   },
-
   divider: {
     width: "100%",
     height: 1,
     backgroundColor: "#e5e7eb",
     marginVertical: 16,
   },
-
   infoRow: {
     width: "100%",
     marginBottom: 12,
   },
-
   label: {
     fontSize: 12,
     color: "#6b7280",
     marginBottom: 2,
   },
-
   value: {
     fontSize: 15,
     color: "#111827",
     fontWeight: "500",
   },
-
   statsCard: {
     backgroundColor: "#ecfdf5",
     borderRadius: 16,
@@ -243,29 +203,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     marginBottom: 30,
   },
-
   statItem: {
     alignItems: "center",
   },
-
   statValue: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#166534",
   },
-
   statLabel: {
     fontSize: 12,
     color: "#374151",
     marginTop: 4,
   },
-
   logout: {
     backgroundColor: "#dc2626",
     padding: 16,
     borderRadius: 14,
   },
-
   logoutText: {
     color: "#fff",
     textAlign: "center",

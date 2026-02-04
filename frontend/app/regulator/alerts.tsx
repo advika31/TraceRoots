@@ -1,4 +1,3 @@
-// frontend/app/regulator/alerts.tsx
 import { useEffect, useState } from "react";
 import {
   ScrollView,
@@ -6,7 +5,7 @@ import {
   Text,
   View,
 } from "react-native";
-import API from "@/services/api";
+import { RegulatorAPI } from "@/services/api";
 
 type AlertItem = {
   farmer_id: number;
@@ -16,15 +15,24 @@ type AlertItem = {
   severity: string;
 };
 
+type NoteItem = {
+  id: number;
+  message: string;
+  priority: string;
+  timestamp: string;
+};
+
 export default function RegulatorAlerts() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [notes, setNotes] = useState<NoteItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const res = await API.get("/regulator/alerts");
-        setAlerts(res.data.alerts || []);
+        const res = await RegulatorAPI.getAlerts();
+        setAlerts(res.alerts || []);
+        setNotes(res.notifications || []);
       } catch (e) {
         console.log("Failed to fetch alerts", e);
       } finally {
@@ -33,6 +41,8 @@ export default function RegulatorAlerts() {
     };
 
     fetchAlerts();
+    const interval = setInterval(fetchAlerts, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) {
@@ -45,25 +55,28 @@ export default function RegulatorAlerts() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}> Sustainability Alerts</Text>
+      <Text style={styles.title}>Sustainability Alerts</Text>
 
       {alerts.length === 0 ? (
-        <Text style={styles.empty}>
-          No violations detected 
-        </Text>
+        <Text style={styles.empty}>No violations detected</Text>
       ) : (
         alerts.map((alert) => (
           <View key={alert.farmer_id} style={styles.card}>
-            <Text style={styles.name}>
-              👨‍🌾 {alert.farmer_name}
-            </Text>
-            <Text>⚠️ Severity: {alert.severity}</Text>
-            <Text>
-              📦 Harvested: {alert.total_harvested_kg} kg
-            </Text>
-            <Text>
-              🚫 Limit: {alert.threshold_kg} kg
-            </Text>
+            <Text style={styles.name}>{alert.farmer_name}</Text>
+            <Text>Severity: {alert.severity}</Text>
+            <Text>Harvested: {alert.total_harvested_kg} kg</Text>
+            <Text>Limit: {alert.threshold_kg} kg</Text>
+          </View>
+        ))
+      )}
+
+      <Text style={styles.sectionTitle}>System Notifications</Text>
+      {notes.length === 0 ? (
+        <Text style={styles.empty}>No new notifications</Text>
+      ) : (
+        notes.map((n) => (
+          <View key={n.id} style={styles.noteCard}>
+            <Text style={styles.noteText}>{n.message}</Text>
           </View>
         ))
       )}
@@ -83,6 +96,13 @@ const styles = StyleSheet.create({
     color: "#b91c1c",
     textAlign: "center",
     marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#14532d",
+    marginTop: 20,
+    marginBottom: 10,
   },
   card: {
     backgroundColor: "#fff",
@@ -104,7 +124,16 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#065f46",
     fontSize: 16,
-    marginTop: 40,
+    marginTop: 10,
+  },
+  noteCard: {
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  noteText: {
+    color: "#374151",
   },
   center: {
     flex: 1,

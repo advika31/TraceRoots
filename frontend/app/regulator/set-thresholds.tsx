@@ -1,131 +1,56 @@
-// frontend/app/regulator/set-thresholds.tsx
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
-import { useState } from "react";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-
-type Zone = {
-  area: string;
-  district: string;
-  maxBatches: string;
-  sustainabilityScore: string;
-  alertLevel: string;
-};
+import { RegulatorAPI } from "@/services/api";
 
 export default function SetThresholds() {
-  const [search, setSearch] = useState("");
+  const [limit, setLimit] = useState("500");
+  const [banned, setBanned] = useState("");
 
-  const [zones, setZones] = useState<Zone[]>([
-    {
-      area: "Almora Forest Belt",
-      district: "Almora",
-      maxBatches: "200",
-      sustainabilityScore: "70",
-      alertLevel: "80",
-    },
-    {
-      area: "Binsar Wildlife Zone",
-      district: "Almora",
-      maxBatches: "150",
-      sustainabilityScore: "65",
-      alertLevel: "75",
-    },
-    {
-      area: "Pithoragarh Timber Zone",
-      district: "Pithoragarh",
-      maxBatches: "100",
-      sustainabilityScore: "60",
-      alertLevel: "70",
-    },
-    {
-      area: "Nainital Forest Division",
-      district: "Nainital",
-      maxBatches: "220",
-      sustainabilityScore: "72",
-      alertLevel: "82",
-    },
-  ]);
+  useEffect(() => {
+    const load = async () => {
+      const data = await RegulatorAPI.getThresholds();
+      setLimit(String(data.max_harvest_limit || "500"));
+      setBanned(String(data.banned_regions || ""));
+    };
+    load();
+  }, []);
 
-  const handleChange = (index: number, field: keyof Zone, value: string) => {
-    const updated = [...zones];
-    updated[index][field] = value;
-    setZones(updated);
+  const handleSave = async () => {
+    const max = Number(limit);
+    if (Number.isNaN(max)) {
+      Alert.alert("Invalid", "Please enter a valid number.");
+      return;
+    }
+    await RegulatorAPI.updateThresholds({ max_harvest_limit: max, banned_regions: banned });
+    Alert.alert("Thresholds Updated", "New regulatory limits have been saved.");
   };
-
-  const handleSave = () => {
-    Alert.alert(
-      "Thresholds Updated",
-      "New regulatory limits have been saved successfully."
-    );
-    console.log("Updated thresholds:", zones);
-  };
-
-  const filteredZones = zones.filter(
-    (z) =>
-      z.area.toLowerCase().includes(search.toLowerCase()) ||
-      z.district.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <Navbar />
+      <Text style={styles.title}>Set Sustainability Thresholds</Text>
 
-      <Text style={styles.title}>Set / Adjust Sustainability Thresholds</Text>
-
-      {/* Search */}
+      <Text style={styles.label}>Max Harvest Limit (kg per farmer)</Text>
       <TextInput
-        placeholder="Search by area or district..."
-        value={search}
-        onChangeText={setSearch}
-        style={styles.search}
+        value={limit}
+        onChangeText={setLimit}
+        keyboardType="numeric"
+        style={styles.input}
       />
 
-      {/* Zone Cards */}
-      {filteredZones.map((zone, index) => (
-        <View key={index} style={styles.card}>
-          <Text style={styles.area}>{zone.area}</Text>
-          <Text style={styles.district}>District: {zone.district}</Text>
+      <Text style={styles.label}>Banned Regions (comma separated)</Text>
+      <TextInput
+        value={banned}
+        onChangeText={setBanned}
+        style={styles.input}
+        placeholder="Banned Zone 1,Banned Zone 2"
+      />
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Max Batches Allowed</Text>
-            <TextInput
-              value={zone.maxBatches}
-              onChangeText={(v) => handleChange(index, "maxBatches", v)}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Minimum Sustainability Score</Text>
-            <TextInput
-              value={zone.sustainabilityScore}
-              onChangeText={(v) => handleChange(index, "sustainabilityScore", v)}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Alert Trigger Level (%)</Text>
-            <TextInput
-              value={zone.alertLevel}
-              onChangeText={(v) => handleChange(index, "alertLevel", v)}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-          </View>
-        </View>
-      ))}
-
-      {filteredZones.length === 0 && (
-        <Text style={styles.noResult}>No matching zone found</Text>
-      )}
-
-      {/* Save Button */}
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveText}>Save All Thresholds</Text>
+        <Text style={styles.saveText}>Save Thresholds</Text>
       </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -142,62 +67,29 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginVertical: 16,
   },
-  search: {
-    backgroundColor: "#dcfce7",
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#bbf7d0",
-    marginBottom: 16,
-  },
-  card: {
-    backgroundColor: "#ecfdf5",
-    padding: 16,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#bbf7d0",
-    marginBottom: 16,
-  },
-  area: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#065f46",
-  },
-  district: {
-    color: "#6b7280",
-    marginBottom: 12,
-  },
-  field: {
-    marginBottom: 12,
-  },
   label: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
-    color: "#047857",
-    marginBottom: 4,
+    color: "#065f46",
+    marginBottom: 8,
   },
   input: {
     backgroundColor: "#ffffff",
-    padding: 10,
+    padding: 12,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#d1fae5",
+    marginBottom: 16,
   },
   saveButton: {
     backgroundColor: "#16a34a",
     padding: 16,
     borderRadius: 18,
     alignItems: "center",
-    marginBottom: 40,
   },
   saveText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
-  },
-  noResult: {
-    textAlign: "center",
-    color: "#6b7280",
-    marginVertical: 20,
   },
 });

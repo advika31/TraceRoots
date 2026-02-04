@@ -1,4 +1,3 @@
-// frontend/app/regulator/batch-lookup.tsx
 import { useState } from "react";
 import {
   StyleSheet,
@@ -9,7 +8,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import API from "@/services/api";
+import api from "@/services/api";
 
 export default function RegulatorBatchLookup() {
   const [batchId, setBatchId] = useState("");
@@ -24,13 +23,10 @@ export default function RegulatorBatchLookup() {
 
     setLoading(true);
     try {
-      const res = await API.get(`/regulator/batch/${batchId}`);
+      const res = await api.get(`/batches/${batchId}`);
       setData(res.data);
     } catch (e: any) {
-      Alert.alert(
-        "Error",
-        e?.response?.data?.detail || "Batch not found"
-      );
+      Alert.alert("Error", e?.response?.data?.detail || "Batch not found");
       setData(null);
     } finally {
       setLoading(false);
@@ -44,7 +40,6 @@ export default function RegulatorBatchLookup() {
       <TextInput
         style={styles.input}
         placeholder="Enter Batch ID"
-        keyboardType="numeric"
         value={batchId}
         onChangeText={setBatchId}
       />
@@ -58,30 +53,22 @@ export default function RegulatorBatchLookup() {
       {data && (
         <View style={styles.card}>
           <Text style={styles.section}>Batch Info</Text>
-          <Text>🌾 Crop: {data.crop_type}</Text>
-          <Text>📦 Quantity: {data.quantity_kg} kg</Text>
-          <Text>🧾 Status: {data.status}</Text>
+          <Text>Crop: {data.crop_name}</Text>
+          <Text>Quantity: {data.quantity} kg</Text>
+          <Text>Status: {data.status}</Text>
 
-          <Text style={styles.section}>Farmer</Text>
-          <Text>👨‍🌾 Name: {data.farmer.name}</Text>
-          <Text>📍 Location: {data.farmer.location}</Text>
-
-          <Text style={styles.section}>Lab Test</Text>
-          {data.lab_test ? (
+          <Text style={styles.section}>Lab Report</Text>
+          {data.lab_report ? (
             <>
-              <Text>✅ Purity: {data.lab_test.purity_percent}%</Text>
-              <Text>🧪 Heavy Metals: {data.lab_test.heavy_metals_safe}</Text>
-              <Text>🧪 Pesticides: {data.lab_test.pesticides_safe}</Text>
-              <Text>📝 Remarks: {data.lab_test.remarks}</Text>
+              <Text>Result: {data.lab_report.result_summary}</Text>
+              <Text>Report URL: {data.lab_report.report_file_url}</Text>
             </>
           ) : (
-            <Text>No lab test uploaded</Text>
+            <Text>No lab report uploaded</Text>
           )}
 
           <Text style={styles.section}>Blockchain</Text>
-          <Text>
-            🔗 TX: {data.blockchain_tx || "Not synced"}
-          </Text>
+          <Text>TX: {data.blockchain_tx_hash || "Not synced"}</Text>
         </View>
       )}
     </ScrollView>

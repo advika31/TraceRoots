@@ -2,7 +2,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.1.8:8081'; 
+// const API_URL = process.env.EXPO_PUBLIC_API_URL ||'http://192.168.1.8:8081'; 
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -39,11 +40,15 @@ api.interceptors.response.use(
 // --- 1. AUTH & FARMER ---
 export const AuthAPI = {
   signup: async (userData: any) => {
-    const response = await api.post('/farmers/signup', userData);
+    const response = await api.post('/auth/signup', userData);
     return response.data;
   },
   login: async (credentials: any) => {
-    const response = await api.post('/farmers/login', credentials);
+    const response = await api.post('/auth/login', credentials);
+    return response.data;
+  },
+  getUser: async (userId: number) => {
+    const response = await api.get(`/auth/user/${userId}`);
     return response.data;
   },
 };
@@ -79,6 +84,15 @@ export const RegulatorAPI = {
     }
   },
   getAlerts: async () => (await api.get('/regulator/alerts')).data,
+  getThresholds: async () => (await api.get('/regulator/thresholds')).data,
+  updateThresholds: async (payload: { max_harvest_limit: number; banned_regions?: string }) => {
+    return (await api.post('/regulator/thresholds', null, { params: payload })).data;
+  },
+  exportData: async () => `${API_URL}/regulator/export`,
+  sendMessage: async (payload: { farmer_id: number; message: string; priority?: string }) => {
+    return (await api.post('/regulator/message', null, { params: payload })).data;
+  },
+  getMessages: async () => (await api.get('/regulator/messages')).data,
 };
 
 // --- 3. PROCESSOR (Lab) ---
@@ -88,6 +102,9 @@ export const ProcessorAPI = {
     return (await api.post(`/processor/lab-report/${batchId}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })).data;
+  },
+  updateStatus: async (batchId: string, status: string) => {
+    return (await api.put(`/processor/status/${batchId}`, null, { params: { status } })).data;
   }
 };
 
@@ -107,8 +124,12 @@ export const ConsumerAPI = {
 // Surplus/NGO Actions
 export const SurplusAPI = {
   getAvailable: async () => (await api.get('/surplus/available')).data,
-  donateBatch: async (batchId: string) => (await api.post(`/surplus/donate/${batchId}`)).data,
+  scanExpiring: async () => (await api.post('/surplus/scan-expiring')).data,
   claimBatch: async (batchId: string, ngoId: number) => (await api.post(`/surplus/claim/${batchId}?ngo_id=${ngoId}`)).data,
+};
+
+export const NotificationsAPI = {
+  getForUser: async (userId: number) => (await api.get(`/farmers/${userId}/notifications`)).data,
 };
 
 export default api;

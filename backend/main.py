@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 from database import engine, Base
-from routes import farmers, batches, regulator, processor, consumer, surplus
+from routes import auth, farmers, batches, regulator, processor, consumer, surplus, ai
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,12 +23,17 @@ os.makedirs("static/uploads", exist_ok=True)
 os.makedirs("static/reports", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+os.makedirs("static/qr", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+app.include_router(auth.router)
 app.include_router(farmers.router)
 app.include_router(batches.router)
 app.include_router(regulator.router)
 app.include_router(processor.router)
 app.include_router(consumer.router)
 app.include_router(surplus.router)
+app.include_router(ai.router)
 
 @app.get("/")
 def home():
@@ -37,3 +42,4 @@ def home():
         "modules": ["Farmer", "Regulator", "Processor", "Consumer"],
         "version": "1.0.0"
     }
+

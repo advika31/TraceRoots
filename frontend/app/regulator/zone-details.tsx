@@ -1,84 +1,57 @@
-// frontend/app/regulator/zone-details.tsx
 import { View, Text, StyleSheet, ScrollView, TextInput } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
+import { RegulatorAPI } from "@/services/api";
+
+type Zone = {
+  area: string;
+  batches: number;
+  status: "Safe" | "Warning" | "Overexploited";
+};
 
 export default function ZoneDetails() {
   const [search, setSearch] = useState("");
+  const [zones, setZones] = useState<Zone[]>([]);
 
-  const zones = [
-    {
-      area: "Almora Forest Belt",
-      district: "Almora",
-      vegetation: "Pine, Oak, Deodar",
-      status: "Safe",
-      batches: "128 (Last 6 months)",
-    },
-    {
-      area: "Binsar Wildlife Zone",
-      district: "Almora",
-      vegetation: "Oak, Rhododendron",
-      status: "Warning",
-      batches: "212 (Last 6 months)",
-    },
-    {
-      area: "Pithoragarh Timber Zone",
-      district: "Pithoragarh",
-      vegetation: "Teak, Bamboo",
-      status: "Overexploited",
-      batches: "390 (Last 6 months)",
-    },
-    {
-      area: "Nainital Forest Division",
-      district: "Nainital",
-      vegetation: "Pine, Cedar",
-      status: "Safe",
-      batches: "145 (Last 6 months)",
-    },
-    {
-      area: "Champawat Reserve",
-      district: "Champawat",
-      vegetation: "Sal, Bamboo",
-      status: "Warning",
-      batches: "260 (Last 6 months)",
-    },
-  ];
+  useEffect(() => {
+    const load = async () => {
+      const data = await RegulatorAPI.getMapData();
+      const counts: Record<string, number> = {};
+      data.forEach((d: any) => {
+        const region = d.zone_status && d.crop ? (d.region || "Unknown") : (d.region || "Unknown");
+        counts[region] = (counts[region] || 0) + 1;
+      });
+      const list: Zone[] = Object.keys(counts).map((k) => {
+        const count = counts[k];
+        const status = count > 10 ? "Overexploited" : count > 5 ? "Warning" : "Safe";
+        return { area: k, batches: count, status };
+      });
+      setZones(list);
+    };
+    load();
+  }, []);
 
-  const filteredZones = zones.filter(
-    (zone) =>
-      zone.area.toLowerCase().includes(search.toLowerCase()) ||
-      zone.district.toLowerCase().includes(search.toLowerCase())
+  const filteredZones = zones.filter((zone) =>
+    zone.area.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <ScrollView style={styles.container}>
       <Navbar />
 
-      <Text style={styles.title}>Zone Details & Sustainability Status</Text>
+      <Text style={styles.title}>Zone Details and Sustainability Status</Text>
 
-      {/* Search Bar */}
       <TextInput
-        placeholder="Search by area or district..."
+        placeholder="Search by area..."
         placeholderTextColor="#6b7280"
         value={search}
         onChangeText={setSearch}
         style={styles.search}
       />
 
-      {/* Cards */}
       {filteredZones.map((zone, index) => (
         <View key={index} style={styles.card}>
           <Text style={styles.area}>{zone.area}</Text>
-
-          <View style={styles.row}>
-            <Text style={styles.label}>District:</Text>
-            <Text style={styles.value}>{zone.district}</Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={styles.label}>Vegetation:</Text>
-            <Text style={styles.value}>{zone.vegetation}</Text>
-          </View>
 
           <View style={styles.row}>
             <Text style={styles.label}>Batches Produced:</Text>
