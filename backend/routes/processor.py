@@ -1,9 +1,7 @@
-# backend/routes/processor.py
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 import os
 import shutil
-import uuid
 import datetime
 from database import get_db
 import models
@@ -13,82 +11,91 @@ router = APIRouter(prefix="/processor", tags=["Processor"])
 
 UPLOAD_DIR = "static/reports"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-@router.post("/lab-report/{batch_id}")
-def upload_lab_report(
+@router.post("/save-grading/{batch_id}")
+def save_batch_grading(
     batch_id: str,
-    result_summary: str = Form(...), 
-    quality_grade: str = Form(...),
-    file: UploadFile = File(...),
-    processor_id: int = Form(...),   
+    grading: schemas.BatchGradingUpdate, 
     db: Session = Depends(get_db)
 ):
-    # 1. Verify Batch Exists
+    """
+    Saves the AI Grading results to the batch.
+    """
     batch = db.query(models.Batch).filter(models.Batch.batch_id == batch_id).first()
     if not batch:
         raise HTTPException(status_code=404, detail="Batch not found")
 
-    # 2. Save Report File
+    # Update Batch Fields
+    batch.quality_grade = grading.quality_grade
+    batch.freshness_score = grading.freshness_score
+    batch.estimated_shelf_life = grading.estimated_shelf_life
+    batch.visual_defects = grading.visual_defects
+    batch.processor_notes = grading.processor_notes
+    
+    # Mark as Tested
+    batch.status = models.BatchStatus.LAB_TESTED
+    
+    # Add Timeline Event
+    db.add(models.BatchEvent(
+        batch_id=batch.id,
+        event_type="LAB_TEST",
+        description=f"Graded {grading.quality_grade} (Freshness: {grading.freshness_score}%)",
+        location="Processing Center"
+    ))
+
+    db.commit()
+    return {"message": "Grading saved successfully", "status": "LAB_TESTED"}
+
+# 2. Upload Lab Report (PDF/Image)
+@router.post("/lab-report/{batch_id}")
+def upload_lab_report(
+    batch_id: str,
+    result_summary: str = Form(...),
+    processor_id: str = Form(...), 
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Uploads the physical lab report image.
+    """
+    batch = db.query(models.Batch).filter(models.Batch.batch_id == batch_id).first()
+    if not batch:
+        raise HTTPException(status_code=404, detail="Batch not found")
+
+    # Save File
     file_ext = file.filename.split(".")[-1]
-    filename = f"report_{batch_id}_{uuid.uuid4().hex[:6]}.{file_ext}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
+    unique_filename = f"{batch_id}_report.{file_ext}"
+    file_path = os.path.join(UPLOAD_DIR, unique_filename)
     
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # 3. Create DB Entry
-    existing_report = db.query(models.LabReport).filter(models.LabReport.batch_id == batch.id).first()
+    # Generate URL
+    report_url = f"/static/reports/{unique_filename}"
     
-    if existing_report:
-        existing_report.result_summary = result_summary
-        existing_report.report_file_url = f"/static/reports/{filename}"
-        existing_report.test_date = datetime.datetime.utcnow()
+    # Update or Create Lab Report Entry
+    if batch.lab_report:
+        batch.lab_report.report_file_url = report_url
+        batch.lab_report.result_summary = result_summary
+        batch.lab_report.test_date = datetime.datetime.utcnow()
     else:
         new_report = models.LabReport(
             batch_id=batch.id,
-            processor_id=processor_id,
-            test_date=datetime.datetime.utcnow(),
-            result_summary=result_summary,
-            report_file_url=f"/static/reports/{filename}"
+            processor_id=int(processor_id),
+            report_file_url=report_url,
+            result_summary=result_summary
         )
         db.add(new_report)
-    
-    # 4. Update Batch Status
-    batch.status = models.BatchStatus.LAB_TESTED
-    batch.quality_grade = quality_grade
-    if batch.owner:
-        db.add(models.Notification(
-            user_id=batch.owner.id,
-            type=models.NotificationType.INFO,
-            sender="Processor",
-            priority="Normal",
-            message=f"Batch {batch.batch_id} certified. Grade {quality_grade}."
-        ))
-    
-    db.commit()
-    
-    return {"message": "Lab report attached", "url": f"/static/reports/{filename}"}
 
+    db.commit()
+    return {"message": "Report uploaded successfully", "report_url": report_url}
+
+# 3. Update Status (Generic)
 @router.put("/status/{batch_id}")
-def update_batch_status(
-    batch_id: str, 
-    status: models.BatchStatus,
-    db: Session = Depends(get_db)
-):
+def update_batch_status(batch_id: str, status: str, db: Session = Depends(get_db)):
     batch = db.query(models.Batch).filter(models.Batch.batch_id == batch_id).first()
     if not batch:
         raise HTTPException(status_code=404, detail="Batch not found")
     
     batch.status = status
-    if status == models.BatchStatus.SOLD and batch.owner:
-        # Reward farmer when sale is confirmed
-        batch.owner.impact_tokens += 10
-        db.add(models.Notification(
-            user_id=batch.owner.id,
-            type=models.NotificationType.SUCCESS,
-            sender="System",
-            priority="Normal",
-            message=f"Batch {batch.batch_id} sold. +10 Impact Tokens credited."
-        ))
     db.commit()
-    return {"status": "Updated", "new_status": status}
+    return {"message": "Status updated"}

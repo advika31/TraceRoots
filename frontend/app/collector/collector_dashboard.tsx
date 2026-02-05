@@ -84,14 +84,6 @@ export default function CollectorDashboard() {
 
         <TouchableOpacity
           style={styles.card}
-          onPress={() => router.push("/collector/surplus-redistribution")}
-        >
-          <MaterialIcons name="volunteer-activism" size={30} color="#15803d" />
-          <Text style={styles.cardText}>Surplus Alerts</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.card}
           onPress={() => router.push("/regulator/SustainabilityMap")}
         >
           <MaterialIcons name="map" size={30} color="#15803d" />

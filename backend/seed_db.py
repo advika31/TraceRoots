@@ -1,25 +1,25 @@
 # backend/seed_db.py
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine, Base
+from passlib.context import CryptContext
 import models
 import datetime
 import random
-import uuid
-
-# Reset DB
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
 print("Seeding TraceRoots Database...")
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def hash_pwd(pwd: str):
+    return pwd_context.hash(pwd)
+    
 # Helpers
 def create_user(username, role, name, loc):
     u = models.User(
         username=username,
         email=f"{username}@traceroots.com",
-        hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
+        hashed_password=hash_pwd("123"),
         full_name=name,
         location=loc,
         role=role

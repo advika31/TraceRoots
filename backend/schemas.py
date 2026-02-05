@@ -65,6 +65,13 @@ class BatchBase(BaseModel):
 class BatchCreate(BatchBase):
     pass
 
+class BatchGradingUpdate(BaseModel):
+    quality_grade: str
+    freshness_score: float
+    estimated_shelf_life: int
+    visual_defects: Optional[str] = "None"
+    processor_notes: Optional[str] = None
+    
 class Batch(BatchBase):
     id: int
     batch_id: str
@@ -76,7 +83,11 @@ class Batch(BatchBase):
     
     # Processor & Blockchain
     quality_grade: Optional[str] = None
+    freshness_score: Optional[float] = None
+    estimated_shelf_life: Optional[int] = None
+    visual_defects: Optional[str] = None
     processor_notes: Optional[str] = None
+    
     blockchain_tx_hash: Optional[str] = None
     is_verified: bool = False 
 

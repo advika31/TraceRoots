@@ -5,6 +5,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { ConsumerAPI } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+
 export default function ProductInfo() {
   const { batchId } = useLocalSearchParams(); 
   const [data, setData] = useState<any>(null);
@@ -31,7 +33,7 @@ export default function ProductInfo() {
   return (
     <ScrollView style={styles.container}>
       {/* Hero Image */}
-      <Image source={{ uri: `http://192.168.1.8:8000${data.batch_details.image}` }} style={styles.heroImage} />
+      <Image source={{ uri: `${API_URL}${data.batch_details.image}` }} style={styles.heroImage} />
       
       <View style={styles.content}>
         {/* Title & Verification */}

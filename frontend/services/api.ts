@@ -2,7 +2,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// const API_URL = process.env.EXPO_PUBLIC_API_URL ||'http://192.168.1.8:8081'; 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
@@ -103,6 +102,10 @@ export const ProcessorAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })).data;
   },
+    saveGrading: async (batchId: string, gradingData: any) => {
+    return (await api.post(`/processor/save-grading/${batchId}`, gradingData)).data;
+  },
+
   updateStatus: async (batchId: string, status: string) => {
     return (await api.put(`/processor/status/${batchId}`, null, { params: { status } })).data;
   }
@@ -124,8 +127,17 @@ export const ConsumerAPI = {
 // Surplus/NGO Actions
 export const SurplusAPI = {
   getAvailable: async () => (await api.get('/surplus/available')).data,
+    getClaimed: async () => (await api.get('/surplus/claimed')).data,
+  donateBatch: async (batchId: string) => (await api.post(`/surplus/donate/${batchId}`)).data,
   scanExpiring: async () => (await api.post('/surplus/scan-expiring')).data,
   claimBatch: async (batchId: string, ngoId: number) => (await api.post(`/surplus/claim/${batchId}?ngo_id=${ngoId}`)).data,
+};
+
+export const AiAPI = {
+  analyzeImage: async (formData: FormData) => (await api.post('/ai/analyze', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+  })).data,
+  analyzeBatch: async (batchId: string) => (await api.post(`/ai/analyze-batch/${batchId}`)).data,
 };
 
 export const NotificationsAPI = {

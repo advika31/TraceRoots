@@ -12,3 +12,6 @@ moviepy
 google-cloud-texttospeech
 pillow
 edge-tts
+passlib
+python-multipart
+bcrypt==4.1.2
