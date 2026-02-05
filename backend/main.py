@@ -2,13 +2,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
 import os
 
 from database import engine, Base
 from routes import auth, farmers, batches, regulator, processor, consumer, surplus, ai
 
 Base.metadata.create_all(bind=engine)
-
+load_dotenv(dotenv_path=".env", override=True)
 app = FastAPI(title="TraceRoots API")
 
 app.add_middleware(
