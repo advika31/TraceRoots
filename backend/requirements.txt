@@ -12,6 +12,13 @@ moviepy
 google-cloud-texttospeech
 pillow
 edge-tts
+<<<<<<< Updated upstream
 passlib
 python-multipart
 bcrypt==4.1.2
+=======
+python-multipart
+google-generativeai
+
+
+>>>>>>> Stashed changes
