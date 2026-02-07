@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 import datetime
+import models
 
 router = APIRouter(prefix="/surplus", tags=["Surplus & NGO"])
 

@@ -1,95 +1,112 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from "react-native";
-import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
-import { RegulatorAPI } from "@/services/api";
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { RegulatorAPI } from '../../services/api';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function SetThresholds() {
-  const [limit, setLimit] = useState("500");
-  const [banned, setBanned] = useState("");
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  const [limit, setLimit] = useState('');
+  const [zones, setZones] = useState('');
 
   useEffect(() => {
-    const load = async () => {
-      const data = await RegulatorAPI.getThresholds();
-      setLimit(String(data.max_harvest_limit || "500"));
-      setBanned(String(data.banned_regions || ""));
-    };
-    load();
+    loadSettings();
   }, []);
 
-  const handleSave = async () => {
-    const max = Number(limit);
-    if (Number.isNaN(max)) {
-      Alert.alert("Invalid", "Please enter a valid number.");
-      return;
+  const loadSettings = async () => {
+    try {
+      const data = await RegulatorAPI.getThresholds();
+      setLimit(data.max_harvest_limit);
+      setZones(data.banned_regions);
+    } catch (e) {
+      Alert.alert("Error", "Could not fetch current settings.");
+    } finally {
+      setLoading(false);
     }
-    await RegulatorAPI.updateThresholds({ max_harvest_limit: max, banned_regions: banned });
-    Alert.alert("Thresholds Updated", "New regulatory limits have been saved.");
   };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await RegulatorAPI.setThresholds({
+        max_harvest_limit: limit,
+        banned_regions: zones
+      });
+      Alert.alert("Success", "Regulatory policies updated.");
+      router.back();
+    } catch (e) {
+      Alert.alert("Error", "Failed to save settings.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#d32f2f" /></View>;
 
   return (
     <View style={styles.container}>
-      <Navbar />
-      <Text style={styles.title}>Set Sustainability Thresholds</Text>
+      <View style={styles.header}>
+        <Ionicons name="arrow-back" size={24} color="#333" onPress={() => router.back()} />
+        <Text style={styles.title}>Policy & Thresholds</Text>
+      </View>
 
-      <Text style={styles.label}>Max Harvest Limit (kg per farmer)</Text>
-      <TextInput
-        value={limit}
-        onChangeText={setLimit}
-        keyboardType="numeric"
-        style={styles.input}
-      />
+      <Text style={styles.subtitle}>Define harvest limits and restricted zones for the current season.</Text>
 
-      <Text style={styles.label}>Banned Regions (comma separated)</Text>
-      <TextInput
-        value={banned}
-        onChangeText={setBanned}
-        style={styles.input}
-        placeholder="Banned Zone 1,Banned Zone 2"
-      />
+      {/* Limit Input */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Max Harvest Limit (kg/district)</Text>
+        <TextInput 
+          style={styles.input} 
+          value={limit} 
+          onChangeText={setLimit}
+          keyboardType="numeric"
+          placeholder="e.g. 500"
+        />
+        <Text style={styles.helper}>Triggers a 'High Stress' alert if exceeded.</Text>
+      </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveText}>Save Thresholds</Text>
+      {/* Zones Input */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>Banned / Restricted Zones</Text>
+        <TextInput 
+          style={[styles.input, styles.textArea]} 
+          value={zones} 
+          onChangeText={setZones}
+          multiline
+          numberOfLines={4}
+          placeholder="e.g. Punjab-Zone-1, Haryana-South"
+        />
+        <Text style={styles.helper}>Enter zone names separated by commas.</Text>
+      </View>
+
+      {/* Save Button */}
+      <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
+        {saving ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.btnText}>Update Policies</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f0fdf4",
-    padding: 16,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#14532d",
-    textAlign: "center",
-    marginVertical: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#065f46",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: "#ffffff",
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#d1fae5",
-    marginBottom: 16,
-  },
-  saveButton: {
-    backgroundColor: "#16a34a",
-    padding: 16,
-    borderRadius: 18,
-    alignItems: "center",
-  },
-  saveText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
+  container: { flex: 1, backgroundColor: '#fff', padding: 20 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', marginTop: 40, marginBottom: 20 },
+  title: { fontSize: 22, fontWeight: 'bold', marginLeft: 15, color: '#d32f2f' },
+  subtitle: { color: '#666', marginBottom: 30 },
+  
+  inputGroup: { marginBottom: 25 },
+  label: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 8 },
+  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 16, backgroundColor: '#f9f9f9' },
+  textArea: { height: 100, textAlignVertical: 'top' },
+  helper: { fontSize: 12, color: '#888', marginTop: 5 },
+
+  saveBtn: { backgroundColor: '#d32f2f', padding: 18, borderRadius: 10, alignItems: 'center', marginTop: 20 },
+  btnText: { color: '#fff', fontSize: 18, fontWeight: 'bold' }
 });

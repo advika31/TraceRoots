@@ -1,111 +1,106 @@
-// frontend/app/processor/history.tsx
-import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import API from "@/services/api";
-
-type Batch = {
-  batch_id: number;
-  crop_type: string;
-  quantity_kg: number;
-  status: string;
-  farmer_name: string;
-};
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import api from '../../services/api';
 
 export default function ProcessorHistory() {
-  const [batches, setBatches] = useState<Batch[]>([]);
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchBatches = async () => {
-      try {
-        const res = await API.get("/processor/batches");
-        if (Array.isArray(res.data)) {
-          setBatches(res.data);
-        } else {
-          console.log("Unexpected response:", res.data);
-          setBatches([]);
-        }
-      } catch (e) {
-        console.log("Failed to fetch processor batches", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBatches();
+    loadHistory();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <Text>Loading batches...</Text>
+  const loadHistory = async () => {
+    try {
+      const res = await api.get('/batches/all');
+      const data = res.data || [];
+      
+      // Filter: Show only batches that have been PROCESSED (Lab Tested, Sold, etc.)
+      // We exclude 'HARVESTED' because those are new/untouched.
+      const processed = data.filter((b: any) => 
+        b.status === 'LAB_TESTED' || b.status === 'SOLD' || b.status === 'IN_TRANSIT' || b.status === 'DONATION_READY'
+      );
+      
+      // Sort by newest
+      setHistory(processed.reverse());
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderItem = ({ item }: { item: any }) => (
+    <View style={styles.card}>
+      <View style={styles.headerRow}>
+        <Text style={styles.batchId}>#{item.batch_id.substring(0, 8)}</Text>
+        <Text style={styles.date}>{new Date(item.harvest_date).toLocaleDateString()}</Text>
       </View>
-    );
-  }
+      
+      <Text style={styles.cropName}>{item.crop_name}</Text>
+      <Text style={styles.details}>Quantity: {item.quantity} kg</Text>
+      
+      <View style={styles.statusRow}>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{item.quality_grade ? `Grade ${item.quality_grade}` : "Ungraded"}</Text>
+        </View>
+        <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+          {item.status.replace('_', ' ')}
+        </Text>
+      </View>
+    </View>
+  );
+
+  const getStatusColor = (status: string) => {
+    if (status === 'LAB_TESTED') return '#2e7d32'; // Green
+    if (status === 'DONATION_READY') return '#ef6c00'; // Orange
+    return '#666';
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Processed Batches</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Ionicons name="arrow-back" size={24} color="#333" onPress={() => router.back()} />
+        <Text style={styles.title}>Processing Log</Text>
+      </View>
 
-      {batches.length === 0 ? (
-        <Text style={styles.empty}>No batches found</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="#2e7d32" style={{marginTop: 50}} />
       ) : (
-        batches.map((batch) => (
-          <View key={batch.batch_id} style={styles.card}>
-            <Text style={styles.crop}>{batch.crop_type}</Text>
-            <Text>📦 Quantity: {batch.quantity_kg} kg</Text>
-            <Text>👨‍🌾 Farmer: {batch.farmer_name}</Text>
-            <Text>🧾 Status: {batch.status}</Text>
-            <Text style={styles.id}>Batch ID: {batch.batch_id}</Text>
-          </View>
-        ))
+        <FlatList
+          data={history}
+          keyExtractor={(item) => item.batch_id}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Ionicons name="file-tray-outline" size={60} color="#ccc" />
+              <Text style={styles.emptyText}>No processing history found.</Text>
+            </View>
+          }
+        />
       )}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f0fdf4",
-    padding: 20,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#15803d",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  card: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  crop: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#166534",
-    marginBottom: 6,
-  },
-  id: {
-    marginTop: 6,
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  empty: {
-    textAlign: "center",
-    color: "#6b7280",
-    marginTop: 40,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: '#f8f9fa', padding: 20 },
+  header: { flexDirection: 'row', alignItems: 'center', marginTop: 30, marginBottom: 20 },
+  title: { fontSize: 22, fontWeight: 'bold', marginLeft: 15, color: '#333' },
+  card: { backgroundColor: '#fff', padding: 15, borderRadius: 12, marginBottom: 15, elevation: 2 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
+  batchId: { fontSize: 12, color: '#888', fontWeight: 'bold' },
+  date: { fontSize: 12, color: '#888' },
+  cropName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+  details: { color: '#555', marginVertical: 5 },
+  statusRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 10 },
+  badge: { backgroundColor: '#e3f2fd', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  badgeText: { color: '#1565c0', fontWeight: 'bold', fontSize: 12 },
+  statusText: { fontWeight: 'bold', fontSize: 12 },
+  empty: { alignItems: 'center', marginTop: 50 },
+  emptyText: { color: '#999', marginTop: 10 }
 });

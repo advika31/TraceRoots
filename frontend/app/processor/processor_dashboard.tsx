@@ -124,12 +124,12 @@ export default function ProcessorDashboard() {
 
         <TouchableOpacity
             style={styles.actionCard}
-            onPress={() => Alert.alert("Coming Soon", "Marketplace under construction")}
+            onPress={() => router.push("/processor/history")}
           >
             <View style={[styles.iconCircle, { backgroundColor: '#e3f2fd' }]}>
-              <MaterialIcons name="storefront" size={28} color="#1565c0" />
+              <MaterialIcons name="history" size={28} color="#1565c0" />
             </View>
-            <Text style={styles.actionText}>Marketplace</Text>
+            <Text style={styles.actionText}>View History</Text>
         </TouchableOpacity>
       </View>
 

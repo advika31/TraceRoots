@@ -99,17 +99,36 @@ def get_recent_alerts(db: Session = Depends(get_db)):
 
 @router.get("/thresholds")
 def get_thresholds(db: Session = Depends(get_db)):
+    limit = db.query(models.GlobalSettings).filter(models.GlobalSettings.key == "MAX_HARVEST_LIMIT").first()
+    zones = db.query(models.GlobalSettings).filter(models.GlobalSettings.key == "BANNED_ZONES").first()
+    
     return {
-        "max_harvest_limit": _get_setting(db, "MAX_HARVEST_LIMIT", "500"),
-        "banned_regions": _get_setting(db, "BANNED_REGIONS", "Banned Zone 1,Banned Zone 2")
+        "max_harvest_limit": limit.value if limit else "500",
+        "banned_regions": zones.value if zones else ""
     }
 
 @router.post("/thresholds")
-def update_thresholds(max_harvest_limit: int, banned_regions: str = "", db: Session = Depends(get_db)):
-    _set_setting(db, "MAX_HARVEST_LIMIT", str(max_harvest_limit))
-    if banned_regions:
-        _set_setting(db, "BANNED_REGIONS", banned_regions)
-    return {"status": "Updated", "max_harvest_limit": max_harvest_limit, "banned_regions": banned_regions}
+def set_thresholds(
+    max_harvest_limit: str, 
+    banned_regions: str, 
+    db: Session = Depends(get_db)
+):
+    limit = db.query(models.GlobalSettings).filter(models.GlobalSettings.key == "MAX_HARVEST_LIMIT").first()
+    if not limit:
+        limit = models.GlobalSettings(key="MAX_HARVEST_LIMIT", value=max_harvest_limit)
+        db.add(limit)
+    else:
+        limit.value = max_harvest_limit
+        
+    zones = db.query(models.GlobalSettings).filter(models.GlobalSettings.key == "BANNED_ZONES").first()
+    if not zones:
+        zones = models.GlobalSettings(key="BANNED_ZONES", value=banned_regions)
+        db.add(zones)
+    else:
+        zones.value = banned_regions
+        
+    db.commit()
+    return {"message": "Regulatory thresholds updated successfully"}
 
 @router.get("/export")
 def export_data(db: Session = Depends(get_db)):

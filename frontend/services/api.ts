@@ -84,6 +84,9 @@ export const RegulatorAPI = {
   },
   getAlerts: async () => (await api.get('/regulator/alerts')).data,
   getThresholds: async () => (await api.get('/regulator/thresholds')).data,
+  setThresholds: async (payload: { max_harvest_limit: string; banned_regions?: string }) => {
+    return (await api.post('/regulator/thresholds', null, { params: payload })).data;
+  },
   updateThresholds: async (payload: { max_harvest_limit: number; banned_regions?: string }) => {
     return (await api.post('/regulator/thresholds', null, { params: payload })).data;
   },

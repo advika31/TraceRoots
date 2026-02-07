@@ -16,9 +16,13 @@ edge-tts
 passlib
 python-multipart
 bcrypt==4.1.2
+<<<<<<< Updated upstream
 =======
 python-multipart
 google-generativeai
 
 
+>>>>>>> Stashed changes
+=======
+sqlalchemy
 >>>>>>> Stashed changes

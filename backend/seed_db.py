@@ -5,6 +5,10 @@ from passlib.context import CryptContext
 import models
 import datetime
 import random
+import uuid
+
+print("Creating tables...")
+Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
